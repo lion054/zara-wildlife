@@ -23,6 +23,7 @@ import { safaris, departures, dayTrips } from "./trips";
 import { combos } from "./combos";
 import { zanzibarPackages } from "./zanzibar";
 import { parks } from "./parks";
+import { halalConfidence } from "./halal";
 
 const lowest = (values: readonly (number | null | undefined)[]) =>
   Math.min(...values.filter((v): v is number => typeof v === "number"));
@@ -155,6 +156,11 @@ export const nav: NavItem[] = [
         note: `${openDates} open, ${soldOut} sold out — the counts are real`,
       },
       { label: "Build and price your trip", href: "/plan", note: "See the total and deposit first" },
+      {
+        label: "Halal travel",
+        href: "/halal",
+        note: `${halalConfidence().confirmed} of ${halalConfidence().total} confirmed, the rest flagged`,
+      },
     ],
   },
   { label: "Why us", href: "/about" },

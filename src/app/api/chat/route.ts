@@ -5,6 +5,7 @@ import {
   openDepartures,
   priceTrip,
   operatorFacts,
+  halalPolicy,
   type CatalogueKind,
 } from "@/lib/catalogue";
 import { site } from "@/lib/site";
@@ -40,6 +41,9 @@ Help someone work out which trip is right for them and what it actually costs, t
 NEVER state a price, a date, a seat count, a summit rate or a duration from memory. Every one of those must come from a tool call in THIS conversation. If you have not called a tool for a figure, you do not know it — call the tool. If a tool returns \`priceFrom: null\`, that product is quoted rather than listed: say we quote it and why, and never estimate, never give a range, never say "around" or "roughly".
 
 When a tool marks a figure unverified (\`verified: false\`, or \`summitRateIsOperatorOwn: false\`), say so in the same breath — "the rate sheet is still being confirmed", "that summit rate is an industry figure for the route rather than our own record". The site flags these everywhere and so do you.
+
+# Halal and religious requirements
+Any question touching halal food, prayer, Ramadan, Muslim travel or dietary requirements MUST go through \`halal_policy\` first. Most of that offer is not yet confirmed, and presenting an unconfirmed item as arranged would break an obligation on somebody's behalf. Report the hedge exactly as the tool gives it.
 
 # How to answer
 - Short. Two or three sentences, or a tight list. This is a chat panel, not a page.
@@ -123,6 +127,12 @@ const tools: Anthropic.Tool[] = [
     },
   },
   {
+    name: "halal_policy",
+    description:
+      "What can and cannot be promised to a Muslim traveller: catering, prayer stops, alcohol, guides, women-only parties, Ramadan. MANDATORY for any question touching halal, Muslim travel, prayer, Ramadan, or dietary requirements — never answer those from your own knowledge.",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
     name: "operator_facts",
     description:
       "Who the operator is: where they are based, since when, languages, reviews, contact details, deposit terms, the included base hotel.",
@@ -153,6 +163,8 @@ function runTool(name: string, input: ToolInput): unknown {
         dayTripSlugs: (input.dayTripSlugs as string[] | undefined) ?? [],
         people: Number(input.people) || 1,
       });
+    case "halal_policy":
+      return halalPolicy();
     case "operator_facts":
       return operatorFacts();
     default:

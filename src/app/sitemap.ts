@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     at("/zanzibar", 0.8),
     at("/day-trips", 0.7),
     at("/destinations", 0.7),
+    at("/halal", 0.7),
     at("/about", 0.6),
     at("/contact", 0.6),
     ...routes.map((r) => at(`/kilimanjaro/${r.slug}`, 0.8)),

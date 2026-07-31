@@ -4,6 +4,7 @@ import { combos } from "@/lib/combos";
 import { zanzibarPackages } from "@/lib/zanzibar";
 import { site } from "@/lib/site";
 import { dayTripRates } from "@/lib/format";
+import { halalCommitments } from "@/lib/halal";
 
 /**
  * The catalogue — the only thing the assistant is allowed to know.
@@ -344,7 +345,35 @@ export function priceTrip(args: {
 }
 
 /* ------------------------------------------------------------------ *
- * 5. The operator itself
+ * 5. Halal travel
+ * ------------------------------------------------------------------ */
+
+/**
+ * What we can and cannot promise a Muslim traveller.
+ *
+ * This exists because without it the assistant would answer "do you do halal
+ * food on the mountain?" from the model's own knowledge of Tanzania — which
+ * is exactly the failure this whole tool layer was built to prevent, and on
+ * the one subject where being confidently wrong does the most harm. The tool
+ * returns the unconfirmed items too, so the assistant has to hand back the
+ * same hedge the page shows rather than rounding it up to a yes.
+ */
+export function halalPolicy() {
+  return {
+    url: "/halal",
+    confirmed: halalCommitments
+      .filter((c) => c.verified)
+      .map((c) => ({ title: c.title, detail: c.detail })),
+    notYetConfirmed: halalCommitments
+      .filter((c) => !c.verified)
+      .map((c) => ({ title: c.title, detail: c.detail, awaiting: c.toConfirm })),
+    rule:
+      "Anything under notYetConfirmed must NOT be presented as arranged, available or included. Say plainly that it is not confirmed yet, say what is being checked, and point at WhatsApp for a direct answer.",
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. The operator itself
  * ------------------------------------------------------------------ */
 
 export function operatorFacts() {
