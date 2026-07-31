@@ -1,0 +1,280 @@
+@import "tailwindcss";
+
+/*==============================================================================
+  PALETTE — sampled from tanzaniawildlifeadventures.com, not chosen.
+
+  The live homepage was rendered at 1600×6000 and its pixels counted, so every
+  value below is a colour the operator already uses, weighted by how much of
+  the page it actually covers:
+
+    #f8f6e5  cream        215,310 px   the page ground
+    #20201c  warm black    79,737 px   the "Welcome to TWA" panel
+    #eee9c2  sand          18,010 px   the icon strip
+    #798645  olive          8,175 px   the "Ready to book" banner
+    #3c410a  deep olive     5,616 px   headings and links
+    #e66e09  orange         1,684 px
+    #af6861  brick          1,332 px   the Mountain Trekking / Safari pills
+    #d9a65e  gold                      "experiences", "Read more"
+    #9dab1f  lime                      the logo itself
+
+  Most of those FAIL WCAG AA where the live site puts text on them. Against
+  their own cream: olive 3.64:1, brick 3.88:1, gold 2.02:1, lime 2.33:1, against
+  a 4.5:1 threshold for body text.
+
+  So the hues are theirs and unchanged; what differs is WHERE each may carry
+  text. Exactly two are darkened, only enough to pass, and only for white-on-fill:
+
+    olive  #798645 → #6f7b3f   white on it 4.58:1
+    brick  #af6861 → #a15f59   white on it 4.89:1
+
+  Everything else is used as sampled in a role that measures clean: deep olive
+  carries the text at 9.89:1 on cream, warm black the dark panels at 15.03:1,
+  and lime and gold are fills that never carry type on a light ground.
+==============================================================================*/
+
+@theme {
+  /* Ground */
+  --color-cream: #f8f6e5;
+  --color-sand: #eee9c2;
+  --color-paper: #f2efdd;
+  --color-line: #e2ddc4;
+
+  /* Type and dark ground */
+  --color-ink: #20201c;
+  --color-ink-soft: #2e2e28;
+  --color-slate: #443f36;
+  --color-muted: #6b665b;
+
+  /* Greens */
+  --color-olive-deep: #3c410a;   /* the workhorse: links, headings, accents */
+  --color-olive-darker: #2b2e07;
+  --color-olive: #798645;        /* fills and large text */
+  --color-olive-text: #6f7b3f;   /* white-on-fill only */
+  --color-lime: #9dab1f;         /* FILL ONLY on light */
+
+  /* Action */
+  --color-brick: #af6861;
+  --color-brick-text: #a15f59;   /* primary CTA */
+  --color-brick-dark: #8d5049;
+  --color-alert: #9d4f09;        /* scarcity — 4.80:1 on sand, 5.91:1 on white */
+
+  /* Accent */
+  --color-gold: #d9a65e;         /* reserved for one thing: the summit */
+  --color-amber: #e5a119;
+
+  /* Climate zones. Only ever inside a profile chart, where they carry real
+     information rather than decoration — so distinguishable first, harmonious
+     second. */
+  --color-zone-forest: #3c410a;
+  --color-zone-moorland: #798645;
+  --color-zone-desert: #af6861;
+  --color-zone-arctic: #7b8894;
+
+  --font-display: "Bjorn Regular", "Trebuchet MS", "Segoe UI", Helvetica, sans-serif;
+  --font-sans: "San Francisco Display", -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
+
+  /* Tripadvisor's own green. Used only as the ground of their mark, never as
+     one of ours — it is not in the sampled palette above and must not become
+     a site colour. */
+  --color-ta-green: #34e0a1;
+
+  /*----------------------------------------------------------------------
+    MOTION
+
+    One curve, two durations. Motion here is meant to be noticed only in its
+    absence: a colour that arrives rather than snaps. Nothing moves position,
+    nothing scales, nothing bounces. An earlier pass had transforms on cards,
+    buttons, chevrons and thumbnails, and the cumulative effect was a site
+    that felt busy rather than considered.
+  ----------------------------------------------------------------------*/
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+
+  /*----------------------------------------------------------------------
+    GLASS
+
+    Shared blur and saturation, so the few panes that exist are cut from one
+    material. Saturation above 100% is what stops blurred cream going grey
+    under a white tint.
+
+    THERE ARE FOUR PANES ON THIS SITE, and each one has something genuinely
+    moving behind it:
+
+      · the fixed header          the page scrolls under it
+      · the sticky book bar       the itinerary scrolls under it
+      · the sticky planner basket the four steps scroll under it
+      · the trip finder           it overlaps the hero photograph by 64px
+
+    Everything else is opaque. `backdrop-filter` over a flat cream section
+    renders nothing and still costs a repaint, and the operator's traffic is
+    largely mid-range Android where that repaint is not free.
+  ----------------------------------------------------------------------*/
+  --glass-blur: 16px;
+  --glass-sat: 160%;
+}
+
+/*==============================================================================
+  FONT LOADING
+
+  The template these faces came from declared them with no `font-display`.
+  Chrome's default is `auto` — a ~3 second BLOCK period during which text is
+  laid out but painted invisibly. On a slow connection in the operator's actual
+  source markets that renders the whole page blank while it asks for a $2,000
+  deposit. `swap` paints the fallback immediately; `local()` lets a machine that
+  already has the face skip the download.
+==============================================================================*/
+
+@font-face {
+  font-family: "Bjorn Regular";
+  font-display: swap;
+  src: local("Bjorn Regular"),
+       url("/fonts/Bjorn-Regular.woff2") format("woff2"),
+       url("/fonts/Bjorn-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: "San Francisco Display";
+  font-display: swap;
+  src: local("SF Pro Display"), local("San Francisco Display"),
+       url("/fonts/SanFranciscoDisplay-Light.woff2") format("woff2"),
+       url("/fonts/SanFranciscoDisplay-Light.woff") format("woff");
+}
+
+/*==============================================================================
+  Base
+==============================================================================*/
+
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--color-cream);
+    color: var(--color-slate);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  /* One visible focus state everywhere. The source template shipped none, which
+     is untenable the moment anything on the page is bookable. */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid var(--color-brick-text);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Colour only. Not transform, not box-shadow, not opacity — those are the
+     properties that make a page feel animated, and nothing on a page selling
+     a climb needs to feel animated. A hover on a nav item and a hover on a
+     $2,000 booking button settle the same way over the same 120ms. */
+  :where(a, button, summary, label, input, select, textarea, [role="button"], [role="radio"], [role="checkbox"]) {
+    transition-property: color, background-color, border-color;
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-soft);
+  }
+
+  /* Stops the 300ms grey flash Android paints over anything tapped — the site
+     supplies its own press state, and both at once reads as a double tap. */
+  :where(a, button, summary, [role="button"]) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*==============================================================================
+  Components
+==============================================================================*/
+
+@layer components {
+  .label {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Measurements read as data, not prose. */
+  .metric { font-variant-numeric: tabular-nums; }
+
+  .prose-lead {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--color-muted);
+  }
+
+  /*==========================================================================
+    GLASS
+
+    Two panes, one material — and only four elements on the whole site use
+    them, each with something genuinely moving behind it. See the note on
+    `--glass-blur` above for why the list is that short.
+
+      .glass      light pane — the fixed header, its dropdowns, the trip
+                  finder where it overlaps the hero, the sticky basket
+      .glass-ink  dark pane  — the header's top strip and the sticky book bar
+
+    Each carries a hairline inset highlight along its top edge. That single
+    line is what reads as thickness; without it a translucent box reads as a
+    low opacity, which is what makes cheap glass look cheap.
+  ==========================================================================*/
+
+  .glass,
+  .glass-ink {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  }
+
+  .glass {
+    background: color-mix(in srgb, white 82%, transparent);
+    border-color: color-mix(in srgb, white 65%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 60%, transparent);
+  }
+
+  .glass-ink {
+    background: color-mix(in srgb, var(--color-ink) 82%, transparent);
+    border-color: color-mix(in srgb, white 12%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
+  }
+
+  /*--------------------------------------------------------------------------
+    Legibility floors.
+
+    Firefox shipped `backdrop-filter` off by default for years and some
+    Android WebViews still drop it. Where the blur is unavailable the tint
+    alone would leave 15px body copy sitting on whatever is behind it, so the
+    pane goes opaque instead. Same for a reader who has asked their OS to
+    reduce transparency — that request is usually about exactly this.
+  --------------------------------------------------------------------------*/
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass { background: rgba(255, 255, 255, 0.97); }
+    .glass-ink { background: rgba(32, 32, 28, 0.97); }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .glass {
+      background: #fff;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .glass-ink {
+      background: var(--color-ink);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}
