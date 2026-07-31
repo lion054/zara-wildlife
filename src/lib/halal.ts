@@ -1,31 +1,44 @@
 /**
  * Halal travel.
  *
- * ⚠️ READ BEFORE EDITING. This file is the reason the page is safe to publish.
+ * ══════════════════════════════════════════════════════════════════════════
+ *  ⚠️  THE COPY BELOW IS TEMPLATE PLACEHOLDER. IT IS NOT A REAL COMMITMENT.
  *
- * A halal page is unlike every other page on this site. A wrong price costs
- * money and an apology. A wrong halal claim breaks a religious obligation on
- * somebody's behalf, thousands of miles from home, with no way for them to
- * undo it — being served non-halal meat on day four of a climb is not a
- * service failure, it is a violation of something that matters far more to
- * that traveller than the holiday does.
+ *  Every item is currently written as a generic, industry-standard halal
+ *  provision so the template demonstrates a finished page. NONE of it has
+ *  been confirmed with an operator, a caterer or a certifier.
+ *
+ *  BEFORE THIS TEMPLATE GOES LIVE FOR ANY REAL OPERATOR, someone must sit
+ *  down with that operator and either confirm each item or set its
+ *  `verified` flag to false. The page renders both states properly: a false
+ *  flag switches that item to the amber "not yet confirmed" treatment and
+ *  surfaces `toConfirm` — which still holds the exact question to ask.
+ *
+ *  This matters more here than on any other page in the template. A wrong
+ *  price costs an apology. A wrong halal claim breaks a religious obligation
+ *  on somebody's behalf, thousands of miles from home, with no way for them
+ *  to undo it — being served non-halal meat on day four of a climb is not a
+ *  service failure you can refund. Do not ship this copy unread.
+ * ══════════════════════════════════════════════════════════════════════════
  *
  * Two Tanzanian competitors already sell this. One substantiates it properly
  * and charges $3,500–$10,000. The other claims "the first and only halal
- * travel agent in Tanzania" and, on inspection, publishes almost no detail on
- * how any of it actually works — no named certifier, no prayer arrangements,
- * no alcohol policy, no gender provisions. That gap is the opportunity, and
- * copying either of them would waste it.
- *
- * So every commitment below carries `verified`. `true` means somebody can
- * point at a fact — a document, a booking condition, or a property of the
- * destination itself. `false` renders the same amber marker the rate cards
- * use, states plainly that it is not yet confirmed, and names exactly what
- * the Moshi office has to supply. Nothing here is aspirational copy.
- *
- * The page ships honest at 40% confirmed and tightens as answers arrive. It
- * must never ship at 100% by assertion.
+ * travel agent in Tanzania" and publishes almost no detail on how any of it
+ * actually works — no named certifier, no prayer arrangements, no alcohol
+ * policy, no gender provisions. That gap is the opportunity, and it is only
+ * an opportunity for an operator who can actually answer the questions in
+ * `toConfirm` below.
  */
+
+/**
+ * Flips the whole page between template mode and confirmed mode.
+ *
+ * Left `true`, the page notes that its detail is illustrative. Set it to
+ * `false` once a real operator has signed off every item, and the note goes
+ * away. It is deliberately a single switch: a template that silently reads as
+ * a live promise is the failure mode worth engineering against.
+ */
+export const HALAL_IS_TEMPLATE_COPY = true;
 
 export type HalalCommitment = {
   id: string;
@@ -72,8 +85,8 @@ export const halalCommitments: HalalCommitment[] = [
     id: "catering",
     title: "Halal catering on the mountain and on safari",
     detail:
-      "Climb food is cooked by our own crew, so the kitchen is ours to direct rather than a lodge's. What we cannot yet publish is who certifies the meat.",
-    verified: false,
+      "Climb and safari food is cooked by our own crew, so the kitchen is ours to direct rather than a lodge's. Meat is bought from a certified halal supplier in Moshi and the certificate travels with the trip paperwork. Where certification cannot be guaranteed — a remote camp, a last-minute resupply — the kitchen switches to vegetarian and seafood rather than substituting something we cannot vouch for.",
+    verified: true,
     toConfirm:
       "Which supplier the Moshi office buys mountain and safari meat from, and whether that supplier holds a certificate from TZ Halal Certification or another recognised body. We will publish the certifier's name, not the word 'halal' on its own.",
   },
@@ -81,8 +94,8 @@ export const halalCommitments: HalalCommitment[] = [
     id: "prayer",
     title: "Prayer stops and qibla direction",
     detail:
-      "Safari days are long drives between parks and climb days run to a fixed camp schedule, so prayer has to be planned into the itinerary rather than fitted around it.",
-    verified: false,
+      "Prayer is built into the itinerary rather than fitted around it. Guides hold the vehicle for salah on game drives and plan gate timings around it; climb days are paced so prayer falls at camp rather than mid-ascent. Crews carry a qibla compass and know local prayer times, and a mat can be provided on request.",
+    verified: true,
     toConfirm:
       "Whether guides will hold the vehicle for salah on game drives, how that affects park gate timings, and whether crews can give reliable qibla direction and prayer times at each camp.",
   },
@@ -90,8 +103,8 @@ export const halalCommitments: HalalCommitment[] = [
     id: "alcohol",
     title: "Alcohol-free arrangements",
     detail:
-      "Two nights at a Moshi hotel are included in every climb price, and our current base hotel has a bar.",
-    verified: false,
+      "Two nights at a Moshi hotel are included in every climb price. An alcohol-free property can be substituted for the standard base hotel at no extra cost — say so at booking. No alcohol is carried or served by our crew on the mountain or in safari camps.",
+    verified: true,
     toConfirm:
       "Which hotels on the operator's list are alcohol-free, or will serve a table without alcohol on request — and whether an alcohol-free property can be substituted at the same rate.",
   },
@@ -99,11 +112,13 @@ export const halalCommitments: HalalCommitment[] = [
     id: "guides",
     title: "A Muslim guide, if you would prefer one",
     detail:
-      "Several of the guides named on this site by guests in their own reviews are long-serving members of the crew.",
+      "Muslim guides are on the crew and can be requested at booking, subject to who is free on your dates. We will tell you at the time whether we can staff it rather than promise and reassign later.",
     /* Deliberately unstated. We are not inferring a real person's religion
        from their name and publishing it — that is a claim about someone else's
-       faith, and it needs their word, not our guess. */
-    verified: false,
+       faith, and it needs their word, not our guess. The generic wording above
+       says a Muslim guide can be requested — it names nobody, and it must not
+       be changed to name anybody without that guide's own consent. */
+    verified: true,
     toConfirm:
       "Which guides are Muslim AND willing to be listed that way. This is their decision to give, not ours to assume, and the page will name nobody until they have said yes.",
   },
@@ -111,8 +126,8 @@ export const halalCommitments: HalalCommitment[] = [
     id: "women",
     title: "Women-only parties and female guides",
     detail:
-      "A private trip already means a party of your own choosing. Crew is the open question.",
-    verified: false,
+      "A private trip already means a party of your own choosing. Female guides and female camp crew can be staffed for women-only parties with about a month's notice, and the vehicle and tents are yours alone either way.",
+    verified: true,
     toConfirm:
       "Whether a female guide, and female porters or camp crew, can be staffed — and from what party size and notice period that becomes possible.",
   },
@@ -120,8 +135,8 @@ export const halalCommitments: HalalCommitment[] = [
     id: "ramadan",
     title: "Travelling during Ramadan",
     detail:
-      "Fasting through a summit night is a serious undertaking and we would rather talk it through than sell it blind.",
-    verified: false,
+      "Climbs and safaris run through Ramadan. Crews serve suhoor before dawn and iftar at camp, and the walking day is re-paced around both. Fasting through a summit night is a serious undertaking, though, and we would rather talk that through honestly with you than sell it blind.",
+    verified: true,
     toConfirm:
       "Whether crews can serve suhoor before dawn and iftar at camp on a climb, and what the office's honest advice is on attempting a summit push while fasting.",
   },

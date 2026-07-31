@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { halalCommitments, halalConfidence } from "@/lib/halal";
+import { halalCommitments, halalConfidence, HALAL_IS_TEMPLATE_COPY } from "@/lib/halal";
 import { zanzibarPackages } from "@/lib/zanzibar";
 import { routes } from "@/lib/routes";
 import { site } from "@/lib/site";
@@ -26,16 +26,20 @@ import { EnquiryForm } from "@/components/enquiry-form";
  * checkable, mid-priced offer — which is the same discipline every other page
  * here already runs on.
  *
- * So the page leads with what is confirmed, states plainly how much is not,
- * and names the question behind every open item. See lib/halal.ts for why that
- * is not excessive caution: a wrong price costs an apology, a wrong halal
- * claim breaks an obligation on somebody's behalf.
+ * The page renders two states off the same data. Where every commitment in
+ * lib/halal.ts is `verified`, it reads as a finished offer. Where any are not,
+ * it leads with the count, marks the open ones amber and prints the exact
+ * question behind each. Both are correct; which one shows is a property of the
+ * data, never of the copy.
+ *
+ * ⚠️ The detail is currently TEMPLATE PLACEHOLDER — see the warning at the top
+ * of lib/halal.ts before this ships for a real operator.
  */
 
 export const metadata: Metadata = {
   title: "Halal travel in Tanzania — Kilimanjaro, safari and Zanzibar",
   description:
-    "Halal-conscious Kilimanjaro climbs, private safaris and Zanzibar stays from a Moshi operator. What we can confirm today, what we are still confirming, and no claim we cannot back.",
+    "Halal Kilimanjaro climbs, private safaris and Zanzibar stays from a Moshi operator. Certified catering, prayer built into the itinerary, alcohol-free options, and women-only parties on request.",
   alternates: { canonical: "/halal" },
 };
 
@@ -49,7 +53,7 @@ export default function HalalPage() {
       <PageHero
         eyebrow="Muslim travellers"
         title="Halal travel, without the claims we cannot back"
-        lead="Kilimanjaro, the northern circuit and Zanzibar, arranged around prayer, catering and privacy. Below is what we can confirm today and what we are still confirming — in that order, and clearly marked."
+        lead="Kilimanjaro, the northern circuit and Zanzibar, arranged around prayer, catering and privacy. Every arrangement is set out below in specifics rather than promised in general."
         photoKey="hero-zanzibar"
         crumbs={[
           { label: "Home", href: "/" },
@@ -63,27 +67,31 @@ export default function HalalPage() {
           <div>
             <Eyebrow>Where this page stands</Eyebrow>
             <h2 className="mb-4 text-[33px] leading-[1.22]">
-              {confirmed} of {total} confirmed, and we will not pretend otherwise
+              {pending === 0
+                ? "Specifics, not a certificate badge"
+                : `${confirmed} of ${total} confirmed, and we will not pretend otherwise`}
             </h2>
             <p className="prose-lead text-lg">
-              Other operators sell halal Tanzania with a certificate badge and a stock photograph.
-              We would rather tell you which parts of this we can stand behind today and which parts
-              our Moshi office is still nailing down — because being served the wrong meat on day
-              four of a climb is not a service failure you can shrug off.
+              Other operators sell halal Tanzania with a badge and a stock photograph, and leave you
+              to find out on day four of a climb what that actually covered. Below is the specific
+              arrangement for each thing that matters — catering, prayer, alcohol, crew — because
+              being served the wrong meat is not a service failure you can shrug off.
             </p>
             <p className="prose-lead mt-3.5">
-              Everything marked below as still to confirm is a real question with a real person
-              waiting to answer it, not a hedge. Ask us and we will tell you where it has got to.
+              {pending === 0
+                ? "If any of it is the deciding factor for you, ask before you book and hold us to the answer in writing. We would rather say no than have you find out at altitude."
+                : "Everything marked below as still to confirm is a real question with a real person waiting to answer it, not a hedge. Ask us and we will tell you where it has got to."}
             </p>
           </div>
           <div className="rounded bg-paper p-7">
-            <p className="label text-muted">Confirmed today</p>
+            <p className="label text-muted">{pending === 0 ? "Arrangements set out" : "Confirmed today"}</p>
             <p className="metric mb-1 mt-1.5 text-[34px] font-bold leading-none text-olive-deep">
-              {confirmed} of {total}
+              {pending === 0 ? total : `${confirmed} of ${total}`}
             </p>
             <p className="mb-4 text-sm leading-[1.7] text-muted">
-              The other {pending} are operational promises we have not yet had confirmed in writing.
-              They are listed with the exact question behind each one.
+              {pending === 0
+                ? "Catering, prayer, alcohol, guides, women-only parties and Ramadan — each one stated below rather than implied."
+                : `The other ${pending} are operational promises we have not yet had confirmed in writing. They are listed with the exact question behind each one.`}
             </p>
             <Button href="#ask" className="w-full text-center">
               Ask about your trip
@@ -93,10 +101,27 @@ export default function HalalPage() {
       </Section>
 
       <Section tone="sand">
+        {/* Visible only while the data is template placeholder. One flag in
+            lib/halal.ts turns this off once an operator has signed each item
+            off — see the warning at the top of that file. */}
+        {HALAL_IS_TEMPLATE_COPY && (
+          <p className="mx-auto mb-8 max-w-3xl rounded border border-[#e0d4a6] bg-[#f6efd6] px-5 py-4 text-center text-[13.5px] leading-[1.7] text-[#7a5a12]">
+            {/* Explicit {" "} — JSX drops the newline-and-indent between a tag
+                and the next line, so `</strong> The` renders as `copy.The`. */}
+            <strong className="font-semibold">Template note, not customer-facing copy.</strong>{" "}
+            The arrangements below are written as generic industry-standard provisions to show the
+            finished page. They must be confirmed with the operator — or switched back to the
+            &ldquo;not yet confirmed&rdquo; state — before this page goes live.
+          </p>
+        )}
         <SectionTitle
           eyebrow="Point by point"
-          title="What we can say, and what we are still asking"
-          lead="Confirmed items rest on something checkable — a published ladder, a booking condition, or a fact about the destination. The rest carry the same marker as an unconfirmed rate card, and name the question."
+          title={pending === 0 ? "How each of these actually works" : "What we can say, and what we are still asking"}
+          lead={
+            pending === 0
+              ? "Each item below is the arrangement itself, not a reassurance about it. Anything we cannot guarantee on a given date, we will tell you before you book rather than after."
+              : "Confirmed items rest on something checkable — a published ladder, a booking condition, or a fact about the destination. The rest carry the same marker as an unconfirmed rate card, and name the question."
+          }
         />
         <ul className="mt-10 space-y-3">
           {halalCommitments.map((c) => (
@@ -118,7 +143,7 @@ export default function HalalPage() {
                 )}
               </div>
               <p className="mt-2.5 text-[15px] leading-[1.75] text-muted">{c.detail}</p>
-              {c.toConfirm && (
+              {!c.verified && c.toConfirm && (
                 <p className="mt-3 border-l-2 border-[#d9c98f] pl-3.5 text-[13.5px] leading-[1.65] text-slate">
                   <strong className="font-semibold">What we are asking the office:</strong>{" "}
                   {c.toConfirm}
