@@ -8,7 +8,7 @@ import { dayTripRates } from "@/lib/format";
 /**
  * The catalogue — the only thing the assistant is allowed to know.
  *
- * This is the load-bearing decision behind both Tanova and the planner's AI
+ * This is the load-bearing decision behind both Yusuph and the planner's AI
  * suggestions. A travel chatbot's failure mode is not being unhelpful; it is
  * quoting $1,800 for a climb that costs $2,250, or inventing a departure date
  * that does not exist. On a site whose entire argument is "every price here is

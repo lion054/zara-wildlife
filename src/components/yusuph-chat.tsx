@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 import { haptic } from "@/lib/haptics";
 
 /**
- * Tanova — the assistant panel.
+ * Yusuph — the assistant panel.
  *
  * Deliberately built in this site's own language rather than the usual chat
  * widget idiom: no gradient bubbles, no pulsing avatar, no rounded-full
@@ -18,7 +18,7 @@ import { haptic } from "@/lib/haptics";
  * condition the blur is for.
  */
 
-const STORAGE_KEY = "twa.tanova.v1";
+const STORAGE_KEY = "twa.yusuph.v1";
 
 const OPENERS = [
   "Which route gives me the best chance of summiting?",
@@ -32,7 +32,7 @@ type Msg = { role: "user" | "assistant"; content: string; streaming?: boolean };
 const GREETING: Msg = {
   role: "assistant",
   content:
-    "I'm Tanova. I can look up any route, price, or departure date on this site — every figure I give you comes from the same data the pages do.<br>What are you thinking about?",
+    "I'm Yusuph. I can look up any route, price, or departure date on this site — every figure I give you comes from the same data the pages do.<br>What are you thinking about?",
 };
 
 /* ------------------------------------------------------------------ *
@@ -102,7 +102,7 @@ function Reply({ text }: { text: string }) {
  * The panel
  * ------------------------------------------------------------------ */
 
-export function TanovaChat() {
+export function YusuphChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([GREETING]);
   const [input, setInput] = useState("");
@@ -220,23 +220,23 @@ export function TanovaChat() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-controls="tanova"
+        aria-controls="yusuph"
         className="fixed bottom-5 right-5 z-[995] flex items-center gap-2.5 rounded-[3px] bg-ink px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(32,32,28,0.6)] transition-colors hover:bg-ink-soft"
       >
         <span aria-hidden className="block size-[7px] rounded-full bg-lime" />
-        {open ? "Close" : "Ask Tanova"}
+        {open ? "Close" : "Ask Yusuph"}
       </button>
 
       {open && (
         <div
-          id="tanova"
+          id="yusuph"
           role="dialog"
-          aria-label="Tanova, the trip assistant"
+          aria-label="Yusuph, the trip assistant"
           className="glass fixed inset-x-3 bottom-[86px] z-[996] flex max-h-[min(620px,calc(100dvh-140px))] flex-col rounded border sm:inset-x-auto sm:right-5 sm:w-[400px]"
         >
           <div className="flex items-baseline justify-between gap-3 border-b border-line px-5 py-3.5">
             <div>
-              <p className="text-[15px] font-bold text-ink">Tanova</p>
+              <p className="text-[15px] font-bold text-ink">Yusuph</p>
               <p className="text-[12.5px] text-muted">
                 Reads the same prices and seat counts as the pages
               </p>
@@ -266,7 +266,7 @@ export function TanovaChat() {
               ) : (
                 <div key={i} className="mr-4">
                   {m.streaming && !m.content ? (
-                    <p className="flex gap-1 py-1" aria-label="Tanova is thinking">
+                    <p className="flex gap-1 py-1" aria-label="Yusuph is thinking">
                       {[0, 1, 2].map((d) => (
                         <span
                           key={d}
@@ -306,11 +306,11 @@ export function TanovaChat() {
             }}
             className="flex items-end gap-2 border-t border-line px-3 py-3"
           >
-            <label className="sr-only" htmlFor="tanova-input">
-              Ask Tanova a question
+            <label className="sr-only" htmlFor="yusuph-input">
+              Ask Yusuph a question
             </label>
             <textarea
-              id="tanova-input"
+              id="yusuph-input"
               ref={inputRef}
               value={input}
               rows={1}
@@ -335,7 +335,7 @@ export function TanovaChat() {
           </form>
 
           <p className="border-t border-line px-5 py-2 text-[11.5px] leading-[1.5] text-muted">
-            Tanova cannot book or take payment. Nothing is charged until the Moshi office confirms
+            Yusuph cannot book or take payment. Nothing is charged until the Moshi office confirms
             your dates in writing.
           </p>
         </div>
