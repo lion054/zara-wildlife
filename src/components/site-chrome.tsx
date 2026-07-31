@@ -164,6 +164,7 @@ const FOOTER = [
       { label: "Climb & Safari", href: "/combos" },
       { label: "Zanzibar", href: "/zanzibar" },
       { label: "Day trips", href: "/day-trips" },
+      { label: "Halal travel", href: "/halal" },
     ],
   },
   {

@@ -137,6 +137,33 @@ export const nav: NavItem[] = [
     ],
   },
   {
+    /**
+     * Halal is not a fifth destination — it is a way of travelling that spans
+     * the four above it. It sits top-level anyway because the people who need
+     * it search for that word specifically, and a cross-cutting page buried as
+     * the fourth child of a dropdown is a page they will never find.
+     */
+    label: "Halal",
+    href: "/halal",
+    children: [
+      {
+        label: "What we can confirm",
+        href: "/halal",
+        note: `${halalConfidence().confirmed} of ${halalConfidence().total} confirmed, the rest flagged openly`,
+      },
+      {
+        label: "Zanzibar",
+        href: "/zanzibar",
+        note: "99% Muslim — halal food and prayer are the default",
+      },
+      {
+        label: "Private climbs",
+        href: "/kilimanjaro",
+        note: "Your own crew, your own timing and catering",
+      },
+    ],
+  },
+  {
     label: "Tours",
     href: "/day-trips",
     foot: {
@@ -156,11 +183,6 @@ export const nav: NavItem[] = [
         note: `${openDates} open, ${soldOut} sold out — the counts are real`,
       },
       { label: "Build and price your trip", href: "/plan", note: "See the total and deposit first" },
-      {
-        label: "Halal travel",
-        href: "/halal",
-        note: `${halalConfidence().confirmed} of ${halalConfidence().total} confirmed, the rest flagged`,
-      },
     ],
   },
   { label: "Why us", href: "/about" },
