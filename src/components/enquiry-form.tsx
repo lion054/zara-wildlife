@@ -30,7 +30,7 @@ import { TripadvisorOwl } from "@/components/tripadvisor";
  * somebody can ask a price is pure abandonment.
  */
 
-export type QuoteKind = "beach" | "daytrip" | "combo" | null;
+export type QuoteKind = "beach" | "daytrip" | "combo" | "halal" | null;
 
 const QUOTE_LEAD: Record<string, string> = {
   beach:
@@ -39,6 +39,8 @@ const QUOTE_LEAD: Record<string, string> = {
     "We publish no rate card for this one, so we price it to your group and your date rather than guess at it.",
   combo:
     "The beach half of this trip is in Zanzibar, which we quote rather than list. Tell us the shape and we will price the whole thing in one go.",
+  halal:
+    "Most of our halal offer is still being confirmed with the Moshi office, so these two answers decide whether we can do what you need — and we would rather say no than guess.",
 };
 
 const field =
@@ -172,6 +174,30 @@ export function EnquiryForm({
           <Select name="board" label="Board basis" options={[
             "No preference yet", "Bed and breakfast", "Half board", "Full board", "All inclusive",
           ]} kind={kind} />
+        </QuoteBlock>
+      )}
+
+      {/* Halal is the one quote block that is not about price.
+          The other three ask the questions that set a figure. These ask the
+          questions that decide whether we can meet an obligation at all —
+          how strict the catering has to be, and whether the trip falls in
+          Ramadan. Getting either wrong is not a pricing error. */}
+      {quoteKind === "halal" && (
+        <QuoteBlock why="Catering standard and Ramadan timing are what we have to check with the office before we can promise anything. Tell us both and we will come back with a straight yes or no.">
+          <Select name="catering" label="Catering standard you keep" kind={kind} options={[
+            "No preference stated yet",
+            "Certified halal meat only",
+            "Halal meat, or vegetarian where it cannot be certified",
+            "Vegetarian or seafood throughout — simplest to guarantee",
+            "No pork or alcohol, otherwise flexible",
+          ]} />
+          <Select name="observance" label="Anything we should plan around" kind={kind} options={[
+            "Nothing in particular",
+            "Prayer stops through the day",
+            "Travelling during Ramadan",
+            "Women-only party or female guide",
+            "More than one of these — I will explain below",
+          ]} />
         </QuoteBlock>
       )}
 

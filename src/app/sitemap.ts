@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
 import { routes } from "@/lib/routes";
-import { safaris, dayTrips } from "@/lib/trips";
+import { safaris, dayTrips, departures } from "@/lib/trips";
 import { combos } from "@/lib/combos";
 import { zanzibarPackages } from "@/lib/zanzibar";
 
@@ -25,5 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...combos.map((c) => at(`/combos/${c.slug}`, 0.7)),
     ...zanzibarPackages.map((z) => at(`/zanzibar/${z.slug}`, 0.7)),
     ...dayTrips.map((t) => at(`/day-trips/${t.slug}`, 0.6)),
+    ...departures.map((d) => at(`/departures/${d.id}`, 0.7)),
   ];
 }

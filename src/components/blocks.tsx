@@ -338,7 +338,7 @@ export function DepartureRow({ id, routeSlug, start, end, price, capacity, booke
           <span className="block text-xs font-normal text-muted">per person, all in</span>
         </p>
         <Link
-          href={`/contact?trip=${id}&label=${encodeURIComponent(`${r.name} Route, ${longDate(start)}, ${money(price)} pp`)}`}
+          href={`/departures/${id}` as never}
           className={`mt-2 inline-block rounded-[3px] px-[22px] py-2.5 text-sm font-semibold ${
             left ? "bg-brick-text text-white hover:bg-brick-dark" : "border border-olive-deep text-olive-deep hover:bg-olive-deep hover:text-white"
           }`}
@@ -455,6 +455,7 @@ export function BookBar({
   verified = true,
   addId,
   extra,
+  primary,
 }: {
   name: string;
   price: number;
@@ -462,6 +463,14 @@ export function BookBar({
   verified?: boolean;
   addId: string;
   extra?: React.ReactNode;
+  /**
+   * Overrides the primary action. A dated group departure is not a planner
+   * item — the basket holds one climb, and adding "Lemosho" would quietly
+   * drop the date, the price and the seat count that made this page worth
+   * visiting. So the departure page sends people to the booking request
+   * instead, and `addId` is ignored when this is set.
+   */
+  primary?: { label: string; href: string };
 }) {
   /* The strongest case for glass on the whole site: this bar is pinned to the
      bottom of a long sell page, so the itinerary, the map and the FAQ all pass
@@ -479,7 +488,7 @@ export function BookBar({
           </p>
           <p className="text-[15px] text-white/80">{name}</p>
         </div>
-        <ActionBarButtons addId={addId} extra={extra} />
+        <ActionBarButtons addId={addId} extra={extra} primary={primary} />
       </div>
     </div>
   );
@@ -499,7 +508,16 @@ export function BookBar({
  * actions is the only arrangement where that isn't an accident. On desktop
  * there is room for both and the launcher stays where it was.
  */
-function ActionBarButtons({ addId, extra }: { addId: string; extra?: React.ReactNode }) {
+function ActionBarButtons({
+  addId,
+  extra,
+  primary,
+}: {
+  addId: string;
+  extra?: React.ReactNode;
+  primary?: { label: string; href: string };
+}) {
+  const main = primary ?? { label: "Add to my trip", href: `/plan?add=${addId}` };
   const cell =
     "flex items-center justify-center rounded-[3px] px-4 py-3.5 text-center text-sm font-semibold md:px-7";
   return (
@@ -513,11 +531,8 @@ function ActionBarButtons({ addId, extra }: { addId: string; extra?: React.React
       >
         WhatsApp us
       </a>
-      <Link
-        href={`/plan?add=${addId}`}
-        className={`${cell} bg-brick-text text-white hover:bg-brick-dark`}
-      >
-        Add to my trip
+      <Link href={main.href as never} className={`${cell} bg-brick-text text-white hover:bg-brick-dark`}>
+        {main.label}
       </Link>
       {/* Mobile only — on desktop the floating launcher has room of its own. */}
       <AskTwaCell className={`${cell} border border-white/25 text-white hover:bg-white/10 md:hidden`} />

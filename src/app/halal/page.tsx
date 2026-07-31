@@ -221,8 +221,9 @@ export default function HalalPage() {
           <EnquiryForm
             kind="halal"
             subject="Halal travel enquiry"
-            context="Halal travel — Kilimanjaro, safari and Zanzibar"
-            hidden={{ enquiry: "halal travel" }}
+            quoteKind="halal"
+            quoteLabel="Halal travel — Kilimanjaro, safari and Zanzibar"
+            hidden={{ enquiry: "halal travel", confirmedItems: `${confirmed} of ${total}` }}
           />
         </div>
       </Section>
