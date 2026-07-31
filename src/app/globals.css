@@ -277,4 +277,28 @@
       backdrop-filter: none;
     }
   }
+
+}
+
+/*==============================================================================
+  One floating thing at a time.
+
+  The assistant launcher is fixed to the bottom-right; the book bar is sticky
+  to the bottom. On a desktop they never meet. On a 430px screen they both land
+  in the same strip, and the launcher reads as a fourth button in the bar that
+  somebody forgot to align.
+
+  So on a phone, a page carrying an action bar stands the launcher down — the
+  bar renders its own Ask TWA cell as a peer of the other actions. `:has()`
+  keeps this a pure-CSS relationship: the bar sets an attribute and never has
+  to know the assistant exists.
+
+  DELIBERATELY UNLAYERED. Inside `@layer components` this lost to the `flex`
+  utility on the button itself, because cascade layers outrank specificity and
+  Tailwind's `utilities` layer is declared after `components`. Unlayered rules
+  beat every layered one, which is the only way a display override lands on an
+  element that carries a display utility.
+==============================================================================*/
+@media (max-width: 767px) {
+  body:has([data-actionbar]) .twa-fab { display: none; }
 }

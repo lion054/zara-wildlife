@@ -140,9 +140,17 @@ export function Unverified({ children }: { children: ReactNode }) {
   return (
     <span
       title="This figure has not been confirmed against the operator's own records"
-      className="inline-flex items-center gap-1 rounded-sm border border-[#e0d4a6] bg-[#f6efd6] px-2 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wider text-[#7a5a12]"
+      className="inline-flex items-center gap-1.5 rounded-full bg-[#f4ecd2] px-2.5 py-1 align-middle text-[11.5px] font-medium leading-none text-[#7a5a12]"
     >
-      ⚠ {children}
+      {/* A gold dot, not a warning triangle.
+          This marker appears seventeen times, several of them directly under a
+          price in a route card. Set in uppercase with wide tracking behind a ⚠
+          it read as an error state — the loudest thing on the card was the
+          disclaimer rather than the number it qualifies. It still has to be
+          seen, so it keeps its own colour and a tinted ground; what it gives
+          up is the shouting. */}
+      <span aria-hidden className="size-[5px] shrink-0 rounded-full bg-[#c79a3e]" />
+      {children}
     </span>
   );
 }

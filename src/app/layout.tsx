@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Header, Footer } from "@/components/site-chrome";
-import { TanovaChat } from "@/components/tanova-chat";
+import { TwaChat } from "@/components/twa-chat";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -84,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             of the chrome being translucent. */}
         <main id="main">{children}</main>
         <Footer />
-        <TanovaChat />
+        <TwaChat />
       </body>
     </html>
   );

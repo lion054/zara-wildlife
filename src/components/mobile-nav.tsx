@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { nav } from "@/lib/nav";
+import { site } from "@/lib/site";
 
 /**
  * Mobile navigation.
@@ -73,6 +74,18 @@ export function MobileNav() {
             id="mobile-nav"
             className="fixed inset-x-0 bottom-0 top-[104px] z-[998] overflow-y-auto border-t border-line bg-white px-5 py-6 lg:hidden"
           >
+            {/* The drawer was 24 links and nothing else — no way to reach a
+                person, and the planner buried under "Company". The two things
+                a phone visitor most often wants are now the first and last
+                things in it. */}
+            <Link
+              href="/plan"
+              className="mb-5 flex items-center justify-between gap-3 rounded-[3px] bg-brick-text px-5 py-4 text-base font-semibold text-white"
+            >
+              Plan and price your trip
+              <span aria-hidden>→</span>
+            </Link>
+
             <ul className="divide-y divide-line">
               {nav.map((item) => (
                 <li key={item.href} className="py-3">
@@ -97,6 +110,26 @@ export function MobileNav() {
                 </li>
               ))}
             </ul>
+
+            <div className="mt-6 grid grid-cols-2 gap-2 border-t border-line pt-5">
+              <a
+                href={`tel:${site.contact.phone.replace(/\s/g, "")}`}
+                className="flex items-center justify-center rounded-[3px] border border-olive-deep px-4 py-3.5 text-sm font-semibold text-olive-deep"
+              >
+                Call the office
+              </a>
+              <a
+                href={site.whatsappUrl}
+                target="_blank"
+                rel="noopener"
+                className="flex items-center justify-center rounded-[3px] border border-olive-deep px-4 py-3.5 text-sm font-semibold text-olive-deep"
+              >
+                WhatsApp
+              </a>
+            </div>
+            <p className="mt-3 pb-2 text-center text-[13px] text-muted">
+              {site.contact.phone} · Moshi, Tanzania
+            </p>
           </div>,
           document.body,
         )}

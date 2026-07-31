@@ -10,10 +10,10 @@ import {
 import { site } from "@/lib/site";
 
 /**
- * Tanova — the assistant endpoint.
+ * TWA — the assistant endpoint.
  *
  * Streams Server-Sent Events to the widget, and runs a tool loop against
- * `lib/catalogue` in between. The architecture is the point: Tanova is given
+ * `lib/catalogue` in between. The architecture is the point: TWA is given
  * NO prices, NO dates and NO seat counts in its prompt. Every figure it says
  * comes back from a tool call that read the same dataset the pages render
  * from, so a number in a chat bubble and the number on the page it links to
@@ -31,7 +31,7 @@ export const dynamic = "force-dynamic";
 
 const MODEL = "claude-opus-5";
 
-const SYSTEM = `You are Tanova, the assistant for ${site.name} — a Kilimanjaro, safari and Zanzibar operator based in Moshi, Tanzania, run by real guides since ${site.established}.
+const SYSTEM = `You are TWA, the assistant for ${site.name} — a Kilimanjaro, safari and Zanzibar operator based in Moshi, Tanzania, run by real guides since ${site.established}.
 
 # What you are for
 Help someone work out which trip is right for them and what it actually costs, then hand them to the page or the planner that lets them act on it. You are a knowledgeable colleague at the Moshi office, not a brochure.
@@ -201,7 +201,7 @@ export async function POST(req: Request) {
         send(c, {
           done: true,
           text:
-            "Tanova is not switched on in this environment — no API key is configured. " +
+            "TWA is not switched on in this environment — no API key is configured. " +
             `Everything else on the site works; for a person, WhatsApp is <strong>${site.contact.whatsapp}</strong>.` +
             `\n[[LINK|Build and price your trip|/plan]]`,
         });
@@ -287,7 +287,7 @@ export async function POST(req: Request) {
         });
         controller.close();
       } catch (err) {
-        console.error("[tanova]", err);
+        console.error("[twa]", err);
         send(controller, {
           done: true,
           text: `Something went wrong at my end. WhatsApp the office on <strong>${site.contact.whatsapp}</strong> — they answer faster than I do anyway.`,

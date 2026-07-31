@@ -9,6 +9,7 @@ import type { Term } from "@/lib/inclusions";
 import { money, metres, dateParts, longDate, routeBadges } from "@/lib/format";
 import { Section, SectionTitle, Pill, Badge, SeatBar, Unverified, Button, difficultyTone } from "@/components/primitives";
 import { TripadvisorLockup, TripadvisorOwl } from "@/components/tripadvisor";
+import { AskTwaCell } from "@/components/ask-twa";
 
 /* ------------------------------------------------------------------ *
  * Reviews
@@ -467,8 +468,8 @@ export function BookBar({
      behind it. Opaque, it read as a floor cutting the page short; blurred, the
      page continues under it. */
   return (
-    <div className="glass-ink sticky bottom-0 z-[90] border-t py-3.5">
-      <div className="mx-auto flex max-w-[1170px] flex-wrap items-center justify-between gap-5 px-5">
+    <div data-actionbar className="glass-ink sticky bottom-0 z-[90] border-t py-3.5">
+      <div className="mx-auto flex max-w-[1170px] flex-col gap-3 px-5 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-5">
         <div>
           <p className="metric text-[26px] font-bold leading-none text-white">
             {money(price)}
@@ -478,18 +479,48 @@ export function BookBar({
           </p>
           <p className="text-[15px] text-white/80">{name}</p>
         </div>
-        <div className="flex flex-wrap gap-2.5">
-          {extra}
-          <a href={site.whatsappUrl} target="_blank" rel="noopener"
-            className="rounded-[3px] bg-white px-7 py-3.5 text-sm font-semibold text-ink hover:bg-sand">
-            WhatsApp us
-          </a>
-          <Link href={`/plan?add=${addId}`}
-            className="rounded-[3px] bg-brick-text px-7 py-3.5 text-sm font-semibold text-white hover:bg-brick-dark">
-            Add to my trip
-          </Link>
-        </div>
+        <ActionBarButtons addId={addId} extra={extra} />
       </div>
+    </div>
+  );
+}
+
+/**
+ * The buttons, as an even grid on a phone and a row on a desktop.
+ *
+ * Wrapped in `flex-wrap` they came out ragged on a 430px screen — two buttons
+ * on one line, the primary orphaned on the next at a different width, and the
+ * floating assistant launcher parked in the gap beside it, reading as a fourth
+ * button nobody had aligned. Every action now occupies the same cell.
+ *
+ * The assistant is IN the grid on mobile rather than floating over it. Its
+ * launcher is a fixed element and this bar is sticky, so on a phone the two
+ * always end up in the same 60px of screen; making it a peer of the other
+ * actions is the only arrangement where that isn't an accident. On desktop
+ * there is room for both and the launcher stays where it was.
+ */
+function ActionBarButtons({ addId, extra }: { addId: string; extra?: React.ReactNode }) {
+  const cell =
+    "flex items-center justify-center rounded-[3px] px-4 py-3.5 text-center text-sm font-semibold md:px-7";
+  return (
+    <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-2.5">
+      {extra}
+      <a
+        href={site.whatsappUrl}
+        target="_blank"
+        rel="noopener"
+        className={`${cell} bg-white text-ink hover:bg-sand`}
+      >
+        WhatsApp us
+      </a>
+      <Link
+        href={`/plan?add=${addId}`}
+        className={`${cell} bg-brick-text text-white hover:bg-brick-dark`}
+      >
+        Add to my trip
+      </Link>
+      {/* Mobile only — on desktop the floating launcher has room of its own. */}
+      <AskTwaCell className={`${cell} border border-white/25 text-white hover:bg-white/10 md:hidden`} />
     </div>
   );
 }
@@ -514,8 +545,8 @@ export function QuoteBar({
   href: string;
 }) {
   return (
-    <div className="glass-ink sticky bottom-0 z-[90] border-t py-3.5">
-      <div className="mx-auto flex max-w-[1170px] flex-wrap items-center justify-between gap-5 px-5">
+    <div data-actionbar className="glass-ink sticky bottom-0 z-[90] border-t py-3.5">
+      <div className="mx-auto flex max-w-[1170px] flex-col gap-3 px-5 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-5">
         <div>
           <p className="text-[22px] font-bold leading-none text-white">
             Quoted to your dates
@@ -523,15 +554,16 @@ export function QuoteBar({
           </p>
           <p className="mt-1 text-[15px] text-white/80">{name}</p>
         </div>
-        <div className="flex flex-wrap gap-2.5">
+        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-2.5">
           <a href={site.whatsappUrl} target="_blank" rel="noopener"
-            className="rounded-[3px] bg-white px-7 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-sand">
+            className="flex items-center justify-center rounded-[3px] bg-white px-4 py-3.5 text-center text-sm font-semibold text-ink transition-colors hover:bg-sand md:px-7">
             WhatsApp us
           </a>
           <Link href={href as never}
-            className="rounded-[3px] bg-brick-text px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brick-dark">
+            className="flex items-center justify-center rounded-[3px] bg-brick-text px-4 py-3.5 text-center text-sm font-semibold text-white transition-colors hover:bg-brick-dark md:px-7">
             Get a price
           </Link>
+          <AskTwaCell className="col-span-2 flex items-center justify-center rounded-[3px] border border-white/25 px-4 py-3.5 text-center text-sm font-semibold text-white hover:bg-white/10 md:hidden" />
         </div>
       </div>
     </div>
