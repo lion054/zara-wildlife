@@ -483,6 +483,11 @@ export function SiteFooter({ hasBlog = false }: { hasBlog?: boolean }) {
             <li><Link href="/privacy-policy" className="hover:text-glacier">Privacy</Link></li>
             <li><Link href="/tipping-policy" className="hover:text-glacier">Tipping policy</Link></li>
             <li><CookieSettingsButton className="hover:text-glacier" /></li>
+            <li>
+              <a href="https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B0%D0%BD%D0%B7%D0%B0%D0%BD%D0%B8%D1%8F_-_panoramio_(3).jpg" rel="noopener noreferrer" className="hover:text-glacier">
+                Zanzibar photo: Андрей Бобровский, CC BY 3.0, Wikimedia Commons
+              </a>
+            </li>
             {site.sisterBrands.map((b) => (
               <li key={b.url}><a href={b.url} rel="noopener noreferrer" className="hover:text-glacier">{b.name}</a></li>
             ))}
