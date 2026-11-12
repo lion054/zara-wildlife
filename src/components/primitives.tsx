@@ -244,6 +244,7 @@ export function PhotoHero({
           fill
           priority
           sizes="100vw"
+          style={{ objectPosition: img.position }}
           className="-z-20 object-cover"
         />
       )}

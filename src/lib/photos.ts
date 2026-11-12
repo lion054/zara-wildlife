@@ -23,6 +23,8 @@ export type Photo = {
   height: number;
   /** Describes what is in frame. Never the filename. */
   alt: string;
+  /** CSS object-position for wide crops, e.g. "50% 62%". Keeps the subject in frame. */
+  position?: string;
 };
 
 export const photos = {
@@ -41,7 +43,7 @@ export const photos = {
   "hero-home": { src: "/photos/hero-home.jpg", width: 2000, height: 1124, alt: "Trekkers on the upper slopes of Kilimanjaro" },
   "hero-kilimanjaro": { src: "/photos/hero-kilimanjaro.webp", width: 1600, height: 1067, alt: "Climbers on the upper slopes of Kilimanjaro" },
   "hero-safaris": { src: "/photos/hero-safaris.jpg", width: 1200, height: 800, alt: "Wildebeest herds crossing the Serengeti plains" },
-  "hero-zanzibar": { src: "/photos/hero-zanzibar.jpg", width: 2400, height: 1594, alt: "Turquoise water and a thatched beach bar on Zanzibar's coast" },
+  "hero-zanzibar": { src: "/photos/hero-zanzibar.jpg", width: 2400, height: 1596, alt: "A traditional dhow sailing boat on a white-sand Zanzibar beach under a deep blue sky", position: "50% 62%" },
   "park-arusha": { src: "/photos/park-arusha.jpg", width: 1600, height: 1060, alt: "The Momella Lakes below Mount Meru" },
   "park-gombe": { src: "/photos/park-gombe.jpg", width: 1000, height: 667, alt: "Forested slopes above Lake Tanganyika at Gombe" },
   "park-katavi": { src: "/photos/park-katavi.jpg", width: 1200, height: 828, alt: "Hippo pools in Katavi National Park" },

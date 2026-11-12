@@ -98,6 +98,7 @@ export function HeroSlider({ slides }: { slides: Slide[] }) {
                 fill
                 priority={n === 0}
                 sizes="100vw"
+                style={{ objectPosition: img.position }}
                 className={`-z-20 object-cover transition-transform duration-[9000ms] ease-out ${
                   active && !reduced ? "scale-105" : "scale-100"
                 }`}

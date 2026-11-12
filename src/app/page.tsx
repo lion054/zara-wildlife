@@ -69,7 +69,18 @@ function Card({ t }: { t: Tour }) {
   );
 }
 
-export const revalidate = 60;
+/** Fisher-Yates: a new random order each time. */
+function shuffle<T>(items: T[]): T[] {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* Rendered per visit so the banner order is different on every reload. */
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   /* Live from Tanova: dates and seats left are never typed into this repo. */
@@ -100,7 +111,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroSlider
-        slides={[
+        slides={shuffle([
           {
             key: "kili",
             imageKey: "hero-home",
@@ -134,7 +145,7 @@ export default async function HomePage() {
               { label: "Halal tours", href: "/halal-tours", variant: "light" },
             ],
           },
-        ]}
+        ])}
       />
 
       {/* ---- Four doors, overlapping the hero ---- */}
