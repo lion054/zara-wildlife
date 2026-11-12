@@ -1,70 +1,88 @@
 import type { Metadata } from "next";
-import { departures } from "@/lib/trips";
-import { kilimanjaroRoutes } from "@/lib/routes";
-import { site } from "@/lib/site";
-import { Section, SectionTitle, PageHero, Button, Eyebrow } from "@/components/primitives";
-import { DepartureRow, RouteTable } from "@/components/blocks";
+import Link from "next/link";
+import { DepartureCard } from "@/components/departure-card";
+import { PageIntro, tourItems } from "@/components/listing";
+import { PhotoHero, Section } from "@/components/primitives";
+import { SectionTitle } from "@/components/tsoka";
+import { FilterGrid } from "@/components/ui";
+import { upcomingGroupDepartures } from "@/lib/departures";
+import { toursOfKind } from "@/lib/tours";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Kilimanjaro group departures — fixed dates and real seats",
-  description: `${departures.length} fixed-date Kilimanjaro group departures, each with a confirmed price and a live seat count. Deposit 30%, balance at 45 days.`,
-  alternates: { canonical: "/departures" },
+  title: "Group departures",
+  description:
+    "Fixed-date Kilimanjaro climbs with real prices and seats left. Join a group and pay less than a private climb.",
 };
 
-export default function DeparturesPage() {
-  const open = departures.filter((d) => d.capacity - d.booked > 0);
-  const full = departures.filter((d) => d.capacity - d.booked <= 0);
-  const biggest = Math.max(...departures.map((d) => d.capacity));
+export default async function DeparturesPage() {
+  const list = await upcomingGroupDepartures(30);
 
   return (
     <>
-      <PageHero eyebrow="Group departures" title="Fixed dates, real seats"
-        lead="Join a group and pay less than a private climb. Each date below carries a price we will honour and a seat count that goes down as people book."
-        photoKey="hero-departures"
-        crumbs={[{ label: "Home", href: "/" }, { label: "Climb", href: "/kilimanjaro" }, { label: "Group departures", href: "/departures" }]} />
+      <PhotoHero imageKey="hero-departures" height="min-h-[16rem] md:min-h-[21rem]">
+        <PageIntro eyebrow="Group departures" title="Fixed dates. Real seats.">
+          Join a group and pay less than a private climb.
+        </PageIntro>
+      </PhotoHero>
 
-      <Section tone="cream">
-        <SectionTitle eyebrow={`${open.length} dates open, ${full.length} sold out`}
-          title="Every date, with the seats that are actually left"
-          lead="Nothing appears on this page without both a confirmed price and a confirmed capacity. A departure that is full says so, and the waitlist is real — we call it when someone cancels." />
-        <div className="mt-11">{open.map((d) => <DepartureRow key={d.id} {...d} />)}</div>
-
-        {full.length > 0 && (
-          <>
-            <h2 className="mb-[18px] mt-11 text-[22px]">Sold out</h2>
-            {full.map((d) => <DepartureRow key={d.id} {...d} />)}
-          </>
+      <Section>
+        {list.length > 0 ? (
+          <ol className="grid gap-5 md:grid-cols-2 lg:grid-cols-3" aria-label="Upcoming group departures">
+            {list.map((d) => (
+              <li key={`${d.tourId}-${d.start}`}>
+                <DepartureCard d={d} />
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="mx-auto max-w-xl rounded-3xl bg-frost p-8 text-center">
+            <h2 className="font-display text-2xl">New dates are being added.</h2>
+            <p className="mt-3 text-sm leading-relaxed text-scree">
+              Pick a route below and join its list: we email you the moment a date opens. Or plan a private climb on any dates.
+            </p>
+            <Link
+              href="/plan"
+              className="mt-5 inline-block rounded-full bg-brand px-7 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-basalt"
+            >
+              Plan a private climb
+            </Link>
+          </div>
         )}
 
-        <div className="mt-11 rounded bg-paper p-[30px]">
-          <h2 className="mb-3.5 text-[21px]">What a group departure includes</h2>
-          <p className="leading-[1.75] text-muted">
-            The same crew, the same food, the same equipment and the same route as a private climb —
-            you simply share the guide and the gate fees with up to {biggest} others. Two nights at
-            the {site.baseHotel.name} in {site.baseHotel.town}
-            {site.baseHotel.orSimilar ? " or similar" : ""} are included, one before the climb and one
-            after. {site.baseHotel.note}
-          </p>
-          <p className="mt-3 leading-[1.75] text-muted">
-            A 30% deposit confirms your seat. The balance is due 45 days before you walk in. Single
-            climbers are paired in a tent by default; a single supplement is available on request.
-          </p>
+        <div className="mt-14 grid gap-8 border-t border-mist pt-10 md:grid-cols-3">
+          <div>
+            <h2 className="font-display text-xl">How a group climb works</h2>
+            <p className="mt-3 text-sm leading-relaxed text-scree">
+              Eight to twelve climbers, two lead guides and a full crew. You share the crew cost, which is why it comes in below a
+              private climb.
+            </p>
+          </div>
+          <div>
+            <h2 className="font-display text-xl">Solo travellers</h2>
+            <p className="mt-3 text-sm leading-relaxed text-scree">
+              No single supplement on a group departure. You get your own tent; share only if you want to.
+            </p>
+          </div>
+          <div>
+            <h2 className="font-display text-xl">If it does not fill</h2>
+            <p className="mt-3 text-sm leading-relaxed text-scree">
+              Departures run from four climbers. Below that we will offer you the next date or a full refund, decided 45 days out.
+            </p>
+          </div>
         </div>
       </Section>
 
-      <Section tone="sand">
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-          <div className="max-w-[62ch]">
-            <Eyebrow>No date works?</Eyebrow>
-            <h2 className="text-[33px] leading-[1.22]">Private climbs run any day of the year</h2>
-            <p className="prose-lead mt-3.5">
-              Pick the route, tell us the month, and we build the climb around you. Two of you costs
-              less per head than one; six costs less again. The whole ladder is on each route page.
-            </p>
-          </div>
-          <Button href="/kilimanjaro">Compare the routes</Button>
+      <Section tone="frost">
+        <SectionTitle
+          eyebrow="Group packages"
+          title="Climbing Kilimanjaro: group departure tours."
+          lead="The itinerary, inclusions and group rate for each route we run on fixed dates."
+        />
+        <div className="mx-auto mt-12 max-w-6xl">
+          <FilterGrid items={tourItems(toursOfKind("group"))} filters={[]} initial={6} />
         </div>
-        <div className="mt-10"><RouteTable routes={kilimanjaroRoutes} /></div>
       </Section>
     </>
   );

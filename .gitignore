@@ -1,4 +1,11 @@
 node_modules
 .next
-out
+.next-build
+.env
+.env.*
+!.env.example
 *.tsbuildinfo
+tanova-bundle
+.vercel
+*.log
+.DS_Store

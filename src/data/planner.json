@@ -1,0 +1,289 @@
+{
+ "safaris": [
+  {
+   "slug": "7-days-luxury-tanzania-wildlife-safari",
+   "name": "Luxury Tanzania Wildlife Safari",
+   "price": 1620,
+   "days": 7
+  },
+  {
+   "slug": "8-days-ultimate-tanzania-safari-experience",
+   "name": "Ultimate Tanzania Safari Experience",
+   "price": 1920,
+   "days": 8
+  },
+  {
+   "slug": "best-of-8-days-classic-tanzania-safari",
+   "name": "Best of Classic Tanzania Safari",
+   "price": 1920,
+   "days": 8
+  },
+  {
+   "slug": "lion-safari-adventure",
+   "name": "Lion Safari Adventure",
+   "price": 1620,
+   "days": 7
+  },
+  {
+   "slug": "northern-circuit-tanzania-safari",
+   "name": "Northern Circuit Tanzania Safari",
+   "price": 1620,
+   "days": 7
+  },
+  {
+   "slug": "serengeti-wildebeest-migration-experience",
+   "name": "Serengeti wildebeest migration Experience",
+   "price": 2220,
+   "days": 9
+  },
+  {
+   "slug": "tanzania-wildlife-tours",
+   "name": "Tanzania wildlife Tours",
+   "price": 0,
+   "days": 5
+  }
+ ],
+ "dayTrips": [
+  {
+   "slug": "arusha-national-park-day-trip",
+   "name": "Arusha National Park",
+   "price": 280,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 506
+    },
+    {
+     "size": "2–4 people",
+     "price": 312
+    },
+    {
+     "size": "5–7 people",
+     "price": 280
+    }
+   ]
+  },
+  {
+   "slug": "chemka-hot-springs",
+   "name": "Chemka Hot Springs",
+   "price": 60,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 120
+    },
+    {
+     "size": "2–5 people",
+     "price": 100
+    },
+    {
+     "size": "6–10 people",
+     "price": 80
+    },
+    {
+     "size": "11+ people",
+     "price": 60
+    }
+   ]
+  },
+  {
+   "slug": "lake-chala-day-trip",
+   "name": "Lake Chala",
+   "price": 150,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 230
+    },
+    {
+     "size": "2–5 people",
+     "price": 190
+    },
+    {
+     "size": "6–10 people",
+     "price": 170
+    },
+    {
+     "size": "11+ people",
+     "price": 150
+    }
+   ]
+  },
+  {
+   "slug": "maasai-boma-day-trip",
+   "name": "Maasai Boma",
+   "price": 88,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 236
+    },
+    {
+     "size": "2–4 people",
+     "price": 121
+    },
+    {
+     "size": "5–7 people",
+     "price": 88
+    }
+   ]
+  },
+  {
+   "slug": "mandara-hut",
+   "name": "Mandara Hut",
+   "price": 247,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 411
+    },
+    {
+     "size": "2–4 people",
+     "price": 274
+    },
+    {
+     "size": "5–7 people",
+     "price": 265
+    },
+    {
+     "size": "8–10 people",
+     "price": 256
+    },
+    {
+     "size": "11+ people",
+     "price": 247
+    }
+   ]
+  },
+  {
+   "slug": "marangu-waterfalls",
+   "name": "Marangu Waterfalls Day Trip",
+   "price": 60,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 120
+    },
+    {
+     "size": "2–5 people",
+     "price": 100
+    },
+    {
+     "size": "6–10 people",
+     "price": 80
+    },
+    {
+     "size": "11+ people",
+     "price": 60
+    }
+   ]
+  },
+  {
+   "slug": "materuni-waterfall-coffee-tour",
+   "name": "Materuni Waterfall & Coffee Tour",
+   "price": 60,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 120
+    },
+    {
+     "size": "2–5 people",
+     "price": 100
+    },
+    {
+     "size": "6–10 people",
+     "price": 80
+    },
+    {
+     "size": "11+ people",
+     "price": 60
+    }
+   ]
+  },
+  {
+   "slug": "mkomazi-national-park",
+   "name": "Mkomazi National Park",
+   "price": 280,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 506
+    },
+    {
+     "size": "2–4 people",
+     "price": 312
+    },
+    {
+     "size": "5–7 people",
+     "price": 280
+    }
+   ]
+  },
+  {
+   "slug": "serval-wildlife",
+   "name": "Serval Wildlife",
+   "price": 150,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 230
+    },
+    {
+     "size": "2–5 people",
+     "price": 190
+    },
+    {
+     "size": "6–10 people",
+     "price": 170
+    },
+    {
+     "size": "11+ people",
+     "price": 150
+    }
+   ]
+  },
+  {
+   "slug": "shira-plateau",
+   "name": "Shira Plateau",
+   "price": 256,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 411
+    },
+    {
+     "size": "2–4 people",
+     "price": 274
+    },
+    {
+     "size": "5–7 people",
+     "price": 265
+    },
+    {
+     "size": "8–10 people",
+     "price": 256
+    }
+   ]
+  },
+  {
+   "slug": "tarangire-national-park",
+   "name": "Tarangire National Park",
+   "price": 280,
+   "tiers": [
+    {
+     "size": "1 person",
+     "price": 506
+    },
+    {
+     "size": "2–4 people",
+     "price": 312
+    },
+    {
+     "size": "5–7 people",
+     "price": 280
+    }
+   ]
+  }
+ ]
+}

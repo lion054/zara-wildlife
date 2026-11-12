@@ -1,21 +1,32 @@
 import type { NextConfig } from "next";
+import { redirects } from "./src/lib/redirects";
 
-/**
- * Next 16. Turbopack is the default bundler for both dev and build, so there
- * is nothing to opt into here.
- *
- * `output: "export"` is deliberately NOT set. The static build this was ported
- * from already covers the "just give me HTML" case; the reason to be on Next
- * at all is the things a static export cannot do — server actions for the
- * deposit, revalidation for live seat counts, and i18n routing for the three
- * languages the operator advertises and does not deliver.
- */
-const nextConfig: NextConfig = {
+/* Blog photos are served by Tanova itself, so its address is the one remote
+   image host this site trusts. It comes from the same setting the API uses. */
+const tanova = (() => {
+  try {
+    return process.env.TANOVA_API_URL ? new URL(process.env.TANOVA_API_URL) : null;
+  } catch {
+    return null;
+  }
+})();
+
+const config: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  /* NEXT_OUTPUT=standalone builds a self-contained server folder, so the host needs no node_modules. */
+  ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const } : {}),
   images: {
-    // Every photograph is local and already sized; AVIF first, WebP behind it.
     formats: ["image/avif", "image/webp"],
+    remotePatterns: tanova
+      ? [{ protocol: tanova.protocol.replace(":", "") as "http" | "https", hostname: tanova.hostname, port: tanova.port, pathname: "/uploads/**" }]
+      : [],
   },
-  typedRoutes: true,
+  async redirects() {
+    return redirects.flatMap(({ from, to }) => [
+      { source: from, destination: to, permanent: true },
+      { source: `${from}/`, destination: to, permanent: true },
+    ]);
+  },
 };
 
-export default nextConfig;
+export default config;

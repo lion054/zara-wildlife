@@ -1,304 +1,328 @@
 @import "tailwindcss";
 
-/*==============================================================================
-  PALETTE — sampled from tanzaniawildlifeadventures.com, not chosen.
+/* ---------------------------------------------------------------------------
+   Tanzania Wildlife Adventures — Kiwano form, TWA brand
 
-  The live homepage was rendered at 1600×6000 and its pixels counted, so every
-  value below is a colour the operator already uses, weighted by how much of
-  the page it actually covers:
+   Two sources, split cleanly:
 
-    #f8f6e5  cream        215,310 px   the page ground
-    #20201c  warm black    79,737 px   the "Welcome to TWA" panel
-    #eee9c2  sand          18,010 px   the icon strip
-    #798645  olive          8,175 px   the "Ready to book" banner
-    #3c410a  deep olive     5,616 px   headings and links
-    #e66e09  orange         1,684 px
-    #af6861  brick          1,332 px   the Mountain Trekking / Safari pills
-    #d9a65e  gold                      "experiences", "Read more"
-    #9dab1f  lime                      the logo itself
+   FORM comes from Kiwano — pill buttons, ten-pixel card radii, cards that lift
+   on hover, the torn-paper strip under the header and footer, Bjorn for
+   headings and San Francisco Display for body.
 
-  Most of those FAIL WCAG AA where the live site puts text on them. Against
-  their own cream: olive 3.64:1, brick 3.88:1, gold 2.02:1, lime 2.33:1, against
-  a 4.5:1 threshold for body text.
+   COLOUR comes from the operator themselves. #9dab1f is sampled straight off
+   their logo artwork; the navy, orange and cyan are lifted from their own
+   stylesheet. Kiwano's magenta and teal are gone entirely — they were never
+   this company's colours, they were the template's.
 
-  So the hues are theirs and unchanged; what differs is WHERE each may carry
-  text. Exactly two are darkened, only enough to pass, and only for white-on-fill:
+   The information design is unchanged from before either: altitudes, prices
+   and day numbers stay in tabular mono so they line up column to column,
+   because a climb is a data set and that was always the point of this site.
 
-    olive  #798645 → #6f7b3f   white on it 4.58:1
-    brick  #af6861 → #a15f59   white on it 4.89:1
+   Token NAMES are deliberately kept (tanzanite, basalt, glacier, scree…) so
+   every page and component keeps working untouched — only their values move.
+   The name is a role, not a colour: `tanzanite` means "primary action green".
+--------------------------------------------------------------------------- */
 
-  Everything else is used as sampled in a role that measures clean: deep olive
-  carries the text at 9.89:1 on cream, warm black the dark panels at 15.03:1,
-  and lime and gold are fills that never carry type on a light ground.
-==============================================================================*/
+/* The operator's own brand fonts, the same files their live site loads:
+   Megafield for headings, Nobel Uno for body and labels. */
+@font-face {
+  font-family: "Megafield";
+  src: url("/fonts/Megafield-Bold.woff") format("woff");
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Megafield";
+  src: url("/fonts/Megafield-Italic.woff") format("woff");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nobel Uno";
+  src: url("/fonts/NobelUno-Medium.woff") format("woff");
+  font-weight: 300 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nobel Uno";
+  src: url("/fonts/NobelUno-Black.woff") format("woff");
+  font-weight: 700 900;
+  font-display: swap;
+}
 
 @theme {
-  /* Ground */
-  --color-cream: #f8f6e5;
-  --color-sand: #eee9c2;
-  --color-paper: #f2efdd;
-  --color-line: #e2ddc4;
+  /* ---------------------------------------------------------------------
+     COLOUR is now the operator's real brand, sampled from their own assets:
+     #9dab1f straight off the logo artwork, the rest from their stylesheet.
+     Kiwano keeps the FORM — pills, card radii, lifts, torn strips, Bjorn —
+     but none of its magenta survives. This is their green.
 
-  /* Type and dark ground */
-  --color-ink: #20201c;
-  --color-ink-soft: #2e2e28;
-  --color-slate: #443f36;
-  --color-muted: #6b665b;
+     ⚠️ The brand lime cannot carry white text. Measured: #9dab1f on white is
+     2.54:1 and #acc31c is 1.99:1, against a 4.5:1 floor. So the lime is a
+     FILL colour that takes dark navy on top, and anything text-weight on a
+     white page uses the deep forest green instead (6.26:1). Swapping those
+     two around is the one change that would quietly break legibility.
+  --------------------------------------------------------------------- */
 
-  /* Greens */
-  --color-olive-deep: #3c410a;   /* the workhorse: links, headings, accents */
-  --color-olive-darker: #2b2e07;
-  --color-olive: #798645;        /* fills and large text */
-  --color-olive-text: #6f7b3f;   /* white-on-fill only */
-  --color-lime: #9dab1f;         /* FILL ONLY on light */
+  /* Palette re-sampled from tanzaniawildlifeadventures.com: warm cream
+     paper, olive, a near-black warm field, safari amber and terracotta.
+     Token names are roles, not colours (see header). */
 
-  /* Action */
-  --color-brick: #af6861;
-  --color-brick-text: #a15f59;   /* primary CTA */
-  --color-brick-dark: #8d5049;
-  --color-alert: #9d4f09;        /* scarcity — 4.80:1 on sand, 5.91:1 on white */
+  /* Surfaces */
+  --color-glacier: #ffffff;
+  --color-frost: #f8f6e5;       /* their cream page colour */
+  --color-sand: #eee9c2;        /* their deeper cream strip */
+  --color-basalt: #14130c;      /* warm near-black — dark field + heading ink */
+  --color-basalt-soft: #2b2c10; /* deep olive, the second dark surface */
+  --color-scree: #55524a;       /* body text, 7.4:1 on white, 6.6:1 on cream */
+  --color-mist: #e4dfc6;        /* hairlines on cream */
 
-  /* Accent */
-  --color-gold: #d9a65e;         /* reserved for one thing: the summit */
-  --color-amber: #e5a119;
+  /* ACTION + TEXT green: their olive, darkened until it carries white text
+     (6.0:1) and works as small text on cream (5.3:1). */
+  --color-tanzanite: #566a1b;
+  --color-tanzanite-lift: #435414;
 
-  /* Climate zones. Only ever inside a profile chart, where they carry real
-     information rather than decoration — so distinguishable first, harmonious
-     second. */
-  --color-zone-forest: #3c410a;
-  --color-zone-moorland: #798645;
-  --color-zone-desert: #af6861;
-  --color-zone-arctic: #7b8894;
+  /* Safari amber — their hero-panel yellow-orange. Fill colour with dark
+     text on top (9:1); also the accent text on dark fields. */
+  --color-brand: #f09f0f;
+  --color-brand-bright: #f7b73d;
 
-  --font-display: "Bjorn Regular", "Trebuchet MS", "Segoe UI", Helvetica, sans-serif;
-  --font-sans: "San Francisco Display", -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
+  /* Terracotta highlight / urgency. Navy text on it, 5.6:1. */
+  --color-sunrise: #e8751a;
+  /* Their ochre, for orange as TEXT on light (4.9:1 on cream). */
+  --color-sunrise-ink: #a35620;
 
-  /* Tripadvisor's own green. Used only as the ground of their mark, never as
-     one of ours — it is not in the sampled palette above and must not become
-     a site colour. */
-  --color-ta-green: #34e0a1;
+  /* Their cyan, kept for the one job it does well — marking the summit. */
+  --color-cyan: #01b2e0;
 
-  /*----------------------------------------------------------------------
-    MOTION
+  /* Climate zones of Kilimanjaro, low to high, pulled toward the brand
+     green at the bottom and their cyan at the top. */
+  --color-zone-forest: #3f7d2a;
+  --color-zone-moor: #9dab1f;
+  --color-zone-desert: #c9a14a;
+  --color-zone-arctic: #7fd0e8;
 
-    One curve, two durations. Motion here is meant to be noticed only in its
-    absence: a colour that arrives rather than snaps. Nothing moves position,
-    nothing scales, nothing bounces. An earlier pass had transforms on cards,
-    buttons, chevrons and thumbnails, and the cumulative effect was a site
-    that felt busy rather than considered.
-  ----------------------------------------------------------------------*/
-  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 120ms;
-  --dur-base: 180ms;
+  --font-display: "Megafield", var(--font-fraunces), Georgia, serif;
+  --font-body: "Nobel Uno", var(--font-karla), system-ui, -apple-system, sans-serif;
+  --font-label: "Nobel Uno", var(--font-karla), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  /*----------------------------------------------------------------------
-    GLASS
-
-    Shared blur and saturation, so the few panes that exist are cut from one
-    material. Saturation above 100% is what stops blurred cream going grey
-    under a white tint.
-
-    THERE ARE FOUR PANES ON THIS SITE, and each one has something genuinely
-    moving behind it:
-
-      · the fixed header          the page scrolls under it
-      · the sticky book bar       the itinerary scrolls under it
-      · the sticky planner basket the four steps scroll under it
-      · the trip finder           it overlaps the hero photograph by 64px
-
-    Everything else is opaque. `backdrop-filter` over a flat cream section
-    renders nothing and still costs a repaint, and the operator's traffic is
-    largely mid-range Android where that repaint is not free.
-  ----------------------------------------------------------------------*/
-  --glass-blur: 16px;
-  --glass-sat: 160%;
+  /* Kiwano's card language */
+  --radius-card: 20px;
+  --shadow-lift: 0 24px 48px -20px rgba(43, 44, 16, 0.28);
+  --shadow-card: 0 1px 2px rgba(43,44,16,0.06), 0 8px 24px -12px rgba(43,44,16,0.18);
+  --shadow-soft: 0 15px 25px 0 rgba(35, 35, 35, 0.12);
+  --shadow-pill: 0 10px 25px 0 rgba(74,85,104,0.15);
 }
-
-/*==============================================================================
-  FONT LOADING
-
-  The template these faces came from declared them with no `font-display`.
-  Chrome's default is `auto` — a ~3 second BLOCK period during which text is
-  laid out but painted invisibly. On a slow connection in the operator's actual
-  source markets that renders the whole page blank while it asks for a $2,000
-  deposit. `swap` paints the fallback immediately; `local()` lets a machine that
-  already has the face skip the download.
-==============================================================================*/
-
-@font-face {
-  font-family: "Bjorn Regular";
-  font-display: swap;
-  src: local("Bjorn Regular"),
-       url("/fonts/Bjorn-Regular.woff2") format("woff2"),
-       url("/fonts/Bjorn-Regular.woff") format("woff");
-}
-@font-face {
-  font-family: "San Francisco Display";
-  font-display: swap;
-  src: local("SF Pro Display"), local("San Francisco Display"),
-       url("/fonts/SanFranciscoDisplay-Light.woff2") format("woff2"),
-       url("/fonts/SanFranciscoDisplay-Light.woff") format("woff");
-}
-
-/*==============================================================================
-  Base
-==============================================================================*/
 
 @layer base {
   html { scroll-behavior: smooth; }
 
   body {
-    background: var(--color-cream);
-    color: var(--color-slate);
-    font-family: var(--font-sans);
+    background-color: var(--color-glacier);
+    color: var(--color-scree);
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  /* Bjorn is a caps-only display face with no true bold — every glyph draws
+     as a capital regardless of the source text. So: weight comes from size,
+     not a heavier cut, and tracking goes POSITIVE. Set caps tight and they
+     jam; the old face wanted -0.035em, this one wants the opposite. */
+  h1, h2, h3, h4 {
+    color: var(--color-basalt);
     font-family: var(--font-display);
-    color: var(--color-ink);
     font-weight: 400;
-    letter-spacing: -0.01em;
+    font-synthesis: none;
+    letter-spacing: 0.005em;
+    line-height: 1.3;
+    text-wrap: balance;
   }
 
-  /* One visible focus state everywhere. The source template shipped none, which
-     is untenable the moment anything on the page is bookable. */
-  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 3px solid var(--color-brick-text);
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
+  h1 { letter-spacing: 0; line-height: 1.2; }
 
-  /* Colour only. Not transform, not box-shadow, not opacity — those are the
-     properties that make a page feel animated, and nothing on a page selling
-     a climb needs to feel animated. A hover on a nav item and a hover on a
-     $2,000 booking button settle the same way over the same 120ms. */
-  :where(a, button, summary, label, input, select, textarea, [role="button"], [role="radio"], [role="checkbox"]) {
-    transition-property: color, background-color, border-color;
-    transition-duration: var(--dur-fast);
-    transition-timing-function: var(--ease-soft);
-  }
+  /* Headings default to dark ink, so any section that inverts the field has
+     to say so. `.on-dark` is set by Section tone="basalt" and the footer —
+     without it every heading on a dark panel would be near-black on near-black. */
+  .on-dark h1,
+  .on-dark h2,
+  .on-dark h3,
+  .on-dark h4 { color: var(--color-glacier); }
 
-  /* Stops the 300ms grey flash Android paints over anything tapped — the site
-     supplies its own press state, and both at once reads as a double tap. */
-  :where(a, button, summary, [role="button"]) {
-    -webkit-tap-highlight-color: transparent;
-  }
+  .on-dark .metric { color: inherit; }
 
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
+  p { text-wrap: pretty; }
+
+  :focus-visible {
+    outline: 3px solid var(--color-tanzanite);
+    outline-offset: 3px;
+    border-radius: 6px;
   }
+  /* The olive ring vanishes on dark fields; amber is 9:1 on them. */
+  .on-dark :focus-visible,
+  .bg-basalt :focus-visible { outline-color: var(--color-brand); }
+
+  /* Navy on the orange, not white — the orange is 2.49:1 against white. */
+  ::selection { background: var(--color-sunrise); color: var(--color-basalt); }
 }
 
-/*==============================================================================
-  Components
-==============================================================================*/
-
 @layer components {
+  /* A climb is a data set. Altitudes, gradients, hours and day numbers all
+     sit in mono so they line up column to column and read as measurements.
+     This survived the reskin unchanged — it is the one thing here that is
+     information design rather than decoration. */
+  .metric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    color: var(--color-basalt);
+  }
+
   .label {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
-  /* Measurements read as data, not prose. */
-  .metric { font-variant-numeric: tabular-nums; }
+  /* ------------------------------------------------------------------
+     Kiwano's torn-paper edge.
 
-  .prose-lead {
-    font-size: 1.0625rem;
-    line-height: 1.75;
-    color: var(--color-muted);
+     This is the single strongest thing in their design and the earlier pass
+     barely used it. In Kiwano it appears three times on every page: tearing
+     the utility bar into the header, tearing the header down into the hero
+     photograph, and tearing the hero back up into the white page below.
+
+     `.torn` is an absolutely-positioned overlay. Put it on a `relative`
+     parent and pick an edge. `-top` flips it so the ragged side faces into
+     the element above rather than below.
+  ------------------------------------------------------------------ */
+  .torn {
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* The PNG is 87px tall: ~50px of flat fill, then the ragged edge, then
+       transparent. Showing it at 1:1 and cropping to its bottom 37px keeps
+       the torn edge and drops the flat band that read as a hard line. */
+    height: 37px;
+    z-index: 5;
+    pointer-events: none;
+    background: url("/texture/texture_strip_repeat_white.png") repeat-x center bottom;
+    background-size: auto 87px;
+  }
+  /* Sits INSIDE the element's bottom edge, flipped so the ragged side faces
+     UP into the photograph and the solid side meets the page below. */
+  .torn-bottom { bottom: -1px; transform: rotate(180deg); }
+  /* Sits INSIDE the top edge, flipped. */
+  .torn-top    { top: -1px; transform: rotate(180deg); }
+  /* HANGS entirely below the element, tearing down into whatever follows.
+     Use on the utility bar and header, where the strip must not cover the
+     bar's own text — which is exactly what `-bottom` was doing. */
+  .torn-hang   { top: 100%; bottom: auto; }
+  .torn-dark   { background-image: url("/texture/texture_strip_repeat_black.png"); }
+
+  /* Legacy aliases from the first pass, kept so nothing breaks mid-refactor. */
+  .torn-strip {
+    height: 26px;
+    background: url("/texture/texture_strip_repeat_white.png") repeat-x center bottom;
+  }
+  .torn-strip-top {
+    height: 26px;
+    background: url("/texture/texture_strip_repeat_white.png") repeat-x center bottom;
+    transform: rotate(180deg);
+  }
+  .torn-strip-dark {
+    background-image: url("/texture/texture_strip_repeat_black.png");
   }
 
-  /*==========================================================================
-    GLASS
-
-    Two panes, one material — and only four elements on the whole site use
-    them, each with something genuinely moving behind it. See the note on
-    `--glass-blur` above for why the list is that short.
-
-      .glass      light pane — the fixed header, its dropdowns, the trip
-                  finder where it overlaps the hero, the sticky basket
-      .glass-ink  dark pane  — the header's top strip and the sticky book bar
-
-    Each carries a hairline inset highlight along its top edge. That single
-    line is what reads as thickness; without it a translucent box reads as a
-    low opacity, which is what makes cheap glass look cheap.
-  ==========================================================================*/
-
-  .glass,
-  .glass-ink {
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  /* Kiwano's card: 10px radius, and it lifts toward you on hover. */
+  .card-lift {
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  }
+  /* Kiwano hangs a tag over the top edge of some cards. `overflow: hidden`
+     above is what keeps a card's photograph inside its rounded corner, so
+     cards that carry an overhanging badge opt out of clipping instead. */
+  .card-open { overflow: visible; }
+  .card-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lift);
   }
 
-  .glass {
-    background: color-mix(in srgb, white 82%, transparent);
-    border-color: color-mix(in srgb, white 65%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, white 60%, transparent);
+  /* Kiwano's image tile: the picture scales under a darkening wash and an
+     inset hairline border draws itself in. */
+  .media-tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+  .media-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .media-tile:hover::before { inset: 15px; opacity: 1; }
+  .media-tile > .media-tile-img { transition: transform 0.4s ease-in-out; }
+  .media-tile:hover > .media-tile-img { transform: scale3d(1.08, 1.08, 1); }
+
+  /* The teal tag Kiwano hangs off the top-left corner of a card. */
+  .tag-teal {
+    background: var(--color-basalt);
+    color: var(--color-brand);
+    line-height: 28px;
+    padding: 0 14px;
+    border-radius: 999px;
   }
 
-  .glass-ink {
-    background: color-mix(in srgb, var(--color-ink) 82%, transparent);
-    border-color: color-mix(in srgb, white 12%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
+  /* Section opener. The old contour rule redrawn as Kiwano's soft dot-and-
+     dash — same job, marking where a section starts, in the new language. */
+  .contour {
+    height: 6px;
+    width: 46px;
+    background-image:
+      linear-gradient(var(--color-tanzanite), var(--color-tanzanite)),
+      linear-gradient(var(--color-sunrise), var(--color-sunrise));
+    background-size: 30px 4px, 10px 4px;
+    background-position: 0 1px, 36px 1px;
+    background-repeat: no-repeat;
+    border-radius: 4px;
   }
-
-  /*--------------------------------------------------------------------------
-    Legibility floors.
-
-    Firefox shipped `backdrop-filter` off by default for years and some
-    Android WebViews still drop it. Where the blur is unavailable the tint
-    alone would leave 15px body copy sitting on whatever is behind it, so the
-    pane goes opaque instead. Same for a reader who has asked their OS to
-    reduce transparency — that request is usually about exactly this.
-  --------------------------------------------------------------------------*/
-
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass { background: rgba(255, 255, 255, 0.97); }
-    .glass-ink { background: rgba(32, 32, 28, 0.97); }
-  }
-
-  @media (prefers-reduced-transparency: reduce) {
-    .glass {
-      background: #fff;
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-    }
-    .glass-ink {
-      background: var(--color-ink);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-    }
-  }
-
 }
 
-/*==============================================================================
-  One floating thing at a time.
-
-  The assistant launcher is fixed to the bottom-right; the book bar is sticky
-  to the bottom. On a desktop they never meet. On a 430px screen they both land
-  in the same strip, and the launcher reads as a fourth button in the bar that
-  somebody forgot to align.
-
-  So on a phone, a page carrying an action bar stands the launcher down — the
-  bar renders its own Ask TWA cell as a peer of the other actions. `:has()`
-  keeps this a pure-CSS relationship: the bar sets an attribute and never has
-  to know the assistant exists.
-
-  DELIBERATELY UNLAYERED. Inside `@layer components` this lost to the `flex`
-  utility on the button itself, because cascade layers outrank specificity and
-  Tailwind's `utilities` layer is declared after `components`. Unlayered rules
-  beat every layered one, which is the only way a display override lands on an
-  element that carries a display utility.
-==============================================================================*/
-@media (max-width: 767px) {
-  body:has([data-actionbar]) .twa-fab { display: none; }
+/* Megafield is a tall display face: the same Tailwind size reads about a
+   fifth bigger than the type this layout was first set in. Unlayered so it
+   beats the utilities. */
+/* Tailwind's text-5xl etc. carry line-height:1, which stacks Megafield's tall
+   ascenders and descenders into each other. */
+h1 { line-height: 1.2; }
+h2 { line-height: 1.25; }
+h1.text-5xl { font-size: 2.5rem; }
+h2.text-4xl { font-size: 2.1rem; }
+@media (min-width: 768px) {
+  h1.md\:text-7xl { font-size: 4rem; }
+  h1.md\:text-6xl { font-size: 3.5rem; }
+  h2.md\:text-5xl { font-size: 2.75rem; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  .card-lift:hover { transform: none; }
+  .media-tile:hover > .media-tile-img { transform: none; }
+}
+
+/* Phones must not inflate type on their own. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }

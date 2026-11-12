@@ -1,127 +1,199 @@
 import type { Metadata } from "next";
-import { site, guides, crewSize } from "@/lib/site";
-import { reviews } from "@/lib/reviews";
-import { climbIncluded, climbExcluded } from "@/lib/inclusions";
-import { Section, SectionTitle, PageHero, Photo, Unverified, Button, Eyebrow } from "@/components/primitives";
-import { ReviewBand, GuideCard, Terms } from "@/components/blocks";
+import Image from "next/image";
+import { Contour, Eyebrow, Section, Stars } from "@/components/primitives";
+import { Faq } from "@/components/faq";
+import { SectionTitle } from "@/components/tsoka";
+import { Collapse, Tabs } from "@/components/ui";
+import taReviews from "@/data/tripadvisor.json";
+import { content } from "@/lib/content";
+import { guides, site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "About us — a Moshi tour operator since 2020",
-  description: `Tanzania Wildlife Adventures: ${crewSize}+ guides and crew operating out of Moshi since ${site.established}. Accreditations, named guides, porter welfare and safety protocol, published in full.`,
-  alternates: { canonical: "/about" },
+  title: "About us",
+  description:
+    "Who guides you, how we treat our porters, what we carry for safety, and the licences we hold.",
 };
 
-const COMMITMENTS = [
-  { h: "Porter pay", p: "Above the KPAP wage floor, paid monthly rather than per climb, and paid whether or not the climb reaches the summit." },
-  { h: "Loads weighed", p: "Every porter's load is weighed at the gate. Nobody carries above the park limit, and the scale is available for you to see." },
-  { h: "Proper kit", p: "Boots, jacket and a sleeping bag rated for the camp they sleep in — issued by us, not bought by them out of a tip." },
-  { h: "Oximeter twice daily", p: "Blood oxygen and pulse checked morning and evening from the second camp up, and the readings written down." },
-  { h: "Oxygen and evacuation", p: "Bottled oxygen on every climb and a written evacuation plan for each camp on each route. Your guide has the final say on going higher." },
-  { h: "Insurance required", p: "Cover for trekking to 5,895 m and helicopter evacuation is a condition of climbing with us. We check the policy before you walk in." },
-];
-
 export default function AboutPage() {
-  const years = new Date().getFullYear() - site.established;
   return (
     <>
-      <PageHero eyebrow="Why us" title="An operator, not an agency"
-        lead={`Based in Moshi since ${site.established}, with our own crew, our own vehicles and ${site.reviews.count} five-star reviews from people who name their guide.`}
-        photoKey="hero-about"
-        crumbs={[{ label: "Home", href: "/" }, { label: "Why us", href: "/about" }]} />
-
-      <Section tone="cream">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <Eyebrow>Moshi, Kilimanjaro Region</Eyebrow>
-            <h2 className="text-[33px] leading-[1.22]">We live at the bottom of it</h2>
-            <p className="prose-lead mt-4">
-              The office is in Moshi town, an hour from the Marangu gate and in sight of the mountain
-              on a clear morning. We have been running climbs and safaris from here since{" "}
-              {site.established} — {years} years — with a crew of {crewSize}+ guides, cooks and
-              porters who are hired locally and paid monthly rather than assembled per climb.
-            </p>
-            <p className="prose-lead">
-              That is the whole difference. An operator who books a crew per trip cannot tell you who
-              will be leading you, and cannot answer for how they are treated. We can do both, which
-              is why the guides are on this site by name and you can ask for one.
-            </p>
+      <section className="border-b border-mist px-6 py-14 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <Contour className="mb-5" />
+          <Eyebrow>About us</Eyebrow>
+          <h1 className="max-w-3xl font-display text-5xl md:text-6xl">
+            A Moshi company, {new Date().getFullYear() - site.established} years
+            in, with the reviews to show for it.
+          </h1>
+          <div className="mt-6">
+            <Stars rating={site.reviews.rating} count={site.reviews.count} />
           </div>
-          <Photo photoKey="hero-about" alt="A Kilimanjaro high camp at dusk" className="h-[420px] rounded" sizes="(max-width:1024px) 100vw, 50vw" priority />
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-scree">
+            We are young by Kilimanjaro standards. That is exactly why what
+            follows — licences, wages, safety kit — is published in full rather
+            than implied.
+          </p>
         </div>
-      </Section>
+      </section>
 
-      <Section tone="ink" id="credentials">
-        <div className="grid gap-12 lg:grid-cols-[5fr_7fr]">
-          <div>
-            <Eyebrow tone="light">Licensed and accredited</Eyebrow>
-            <h2 className="text-[33px] leading-[1.22] text-white">Who we answer to</h2>
-            <p className="mt-3.5 leading-[1.8] text-white/75">
-              Every one of these bodies can be checked independently, which is the point of listing
-              them. Each entry carries a marker until its real membership number is published here —
-              a claimed accreditation with no number attached is not a credential, it is a logo.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {site.credentials.map((c) => (
-              <div key={c.name} className="min-w-[128px] rounded border border-white/20 px-[18px] py-3">
-                <p className="text-base font-bold tracking-wider text-white">{c.name}</p>
-                <p className="mt-0.5 text-xs text-white/60">{c.full}</p>
-                <p className="metric mt-1 text-xs text-lime">
-                  {c.number || <Unverified>Number to confirm</Unverified>}
-                </p>
-              </div>
+      {/* Who we are: two paragraphs, the rest on request */}
+      <Section>
+        <div className="mx-auto max-w-3xl">
+          <h2 className="font-display text-3xl md:text-4xl">Who we are</h2>
+          <div className="mt-6 space-y-5 text-lg leading-relaxed text-scree">
+            {content.about.who.slice(0, 2).map((p) => (
+              <p key={p}>{p}</p>
             ))}
           </div>
+          <div className="mt-6">
+            <Collapse title="Read the full story">
+              <div className="space-y-5 text-base leading-relaxed text-scree">
+                {content.about.who.slice(2).map((p) => (
+                  <p key={p}>{p}</p>
+                ))}
+              </div>
+            </Collapse>
+          </div>
         </div>
       </Section>
 
-      <Section tone="cream" id="guides">
-        <SectionTitle eyebrow="The crew" title="Guests name them in their own reviews"
-          lead="So they are here, by name, with their role and their years. Ask for one of them when you book and we will put them on your trip if they are free." />
-        <div className="mt-10 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
-          {guides.map((g) => <GuideCard key={g.name} guide={g} />)}
+      {/* The detail, in tabs so the page stays short */}
+      <Section tone="frost" id="whychooseus">
+        <SectionTitle eyebrow="The detail" title="What you should know before you book." />
+        <div className="mx-auto mt-10 max-w-5xl">
+          <Tabs
+            label="About us"
+            tabs={[
+              {
+                id: "why",
+                label: "Why choose us",
+                content: (
+                  <div>
+                    {content.about.whyIntro && <p className="mb-6 max-w-3xl text-base text-scree">{content.about.whyIntro}</p>}
+                    <Faq items={content.about.why.map((w) => ({ q: w.title, a: w.text }))} />
+                  </div>
+                ),
+              },
+              {
+                id: "safety",
+                label: "Safety",
+                content: (
+                  <ul className="grid gap-4 md:grid-cols-2">
+                    {[
+            {
+              h: "Twice-daily health checks",
+              p: "Pulse oximeter and resting heart rate, morning and evening, recorded on a chart the guide keeps. Numbers going the wrong way get acted on before they become an evacuation.",
+            },
+            {
+              h: "Oxygen carried, always",
+              p: "A bottled-oxygen cylinder travels with every group. It is for emergency descent, not for pushing someone higher than they should go.",
+            },
+            {
+              h: "Guides trained for it",
+              p: "Lead guides hold wilderness first-responder certification and altitude-illness training, renewed on a schedule we publish.",
+            },
+            {
+              h: "Evacuation plan",
+              p: "Stretcher and route plan for every camp, park rescue coordination, and a helicopter-capable landing point identified per route.",
+            },
+            {
+              h: "Insurance is mandatory",
+              p: "Your policy must cover trekking to 6,000 m and helicopter evacuation. We ask for the certificate and we read it.",
+            },
+            {
+              h: "We will turn you around",
+              p: "The guide's decision to descend is final. It is not a refundable decision and it is not negotiable at 5,000 m.",
+            },
+          ].map((item) => (
+                      <li key={item.h} className="rounded-2xl bg-glacier p-5 ring-1 ring-mist">
+                        <h3 className="font-display text-lg">{item.h}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-scree">{item.p}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ),
+              },
+              {
+                id: "porters",
+                label: "Porter welfare",
+                content: (
+                  <div className="rounded-3xl bg-basalt p-7 text-glacier md:p-9">
+                    <h3 className="font-display text-2xl">The crew is why you summit. Here is how they are treated.</h3>
+                    <ul className="mt-5 space-y-3">
+                      {[
+              "Wage at or above the KPAP floor, paid before the crew leaves the gate",
+              "Load limit of 20 kg, weighed at the gate and again on the mountain",
+              "Three meals a day for every crew member, cooked from the same kitchen",
+              "Sleeping bag, mat, jacket and boots provided to any porter who needs them",
+              "Tents for all crew — nobody sleeps in the mess",
+              "Crew insured for injury and evacuation",
+            ].map((item) => (
+                        <li key={item} className="flex gap-3 border-b border-glacier/15 pb-3 text-sm leading-relaxed text-glacier/85">
+                          <span className="text-brand" aria-hidden="true">—</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-5 text-sm text-glacier/80">Member of the Mount Kilimanjaro Porters Society.</p>
+                  </div>
+                ),
+              },
+              {
+                id: "guides",
+                label: "Guides",
+                content: (
+                  <div>
+                    <p className="mb-6 max-w-2xl text-sm text-scree">Named by guests in review after review. Ask for one when you book.</p>
+                    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {guides.map((g) => (
+                        <li key={g.name} className="rounded-2xl bg-glacier p-4 ring-1 ring-mist">
+                          <p className="font-display text-lg">{g.name}</p>
+                          <p className="text-sm text-scree">{g.role}</p>
+                          <p className="mt-1 text-xs text-scree/80">{g.languages}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ),
+              },
+              {
+                id: "reviews",
+                label: `Reviews · ${site.reviews.count}`,
+                content: (
+                  <div>
+                    <ul className="grid gap-4 md:grid-cols-2">
+                      {taReviews.map((r) => (
+                        <li key={r.reviewer + r.date} className="rounded-2xl bg-glacier p-5 ring-1 ring-mist">
+                          <div className="text-sunrise-ink" role="img" aria-label="Five out of five stars">★★★★★</div>
+                          <p className="mt-1 font-display text-lg">{r.title}</p>
+                          <p className="mt-1 line-clamp-4 text-sm leading-relaxed text-scree">&ldquo;{r.text}&rdquo;</p>
+                          <p className="metric mt-3 text-sm">{r.reviewer}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-6 text-center">
+                      <a href={site.reviews.url} rel="noopener noreferrer" className="text-sm font-semibold text-tanzanite underline underline-offset-4">
+                        Read all reviews on TripAdvisor
+                      </a>
+                    </p>
+                  </div>
+                ),
+              },
+            ]}
+          />
         </div>
-        <p className="mt-10 text-center text-sm text-muted">
-          A crew of {crewSize}+ in total. <Unverified>Guide photographs and confirmed years to supply</Unverified>
-        </p>
       </Section>
 
-      <Section tone="sand" id="porters">
-        <SectionTitle eyebrow="Crew welfare and safety" title="The part of a climb nobody advertises"
-          lead="Underpaid, underfed and underequipped crew is how people get hurt on this mountain — climbers as well as porters. So here is what we actually do, in terms you can hold us to." />
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {COMMITMENTS.map((c) => (
-            <div key={c.h} className="rounded border border-line bg-white p-7">
-              <h3 className="mb-2.5 text-[19px]">{c.h}</h3>
-              <p className="text-[15px] leading-[1.75] text-muted">{c.p}</p>
-            </div>
+      {/* Memberships */}
+      <Section>
+        <p className="label text-center text-tanzanite">Members of</p>
+        <ul className="mt-6 flex flex-wrap items-center justify-center gap-6">
+          {site.members.map((m) => (
+            <li key={m.name} className="flex h-24 w-36 flex-col items-center justify-center rounded-2xl bg-basalt p-3 text-center">
+              <Image src={m.logo} alt={m.full} width={m.w} height={m.h} className="h-14 w-auto object-contain" />
+            </li>
           ))}
-        </div>
-      </Section>
-
-      <Section tone="cream" id="group">
-        <SectionTitle eyebrow="The wider group" title="Where you sleep, and what your climb funds"
-          lead="Safari itineraries book into our sister company's properties by default, and climbers can carry a fundraising page for the group's charity." />
-        <div className="mt-9 grid gap-6 lg:grid-cols-2">
-          {site.sisterBrands.map((b) => (
-            <div key={b.url} className="rounded bg-paper p-[30px]">
-              <h3 className="mb-2 text-[23px]">{b.name}</h3>
-              <p className="mb-3 text-base leading-[1.75] text-muted">{b.role}</p>
-              <a href={b.url} target="_blank" rel="noopener" className="text-sm font-semibold text-olive-deep hover:underline">
-                Visit {b.name}
-              </a>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <ReviewBand items={reviews.slice(0, 6)} title="What guests actually wrote"
-        lead="Every one of these is on Tripadvisor under the guest's own name and none were solicited." />
-
-      <Section tone="cream" id="whychooseus">
-        <SectionTitle eyebrow="The small print" title="What a climb price covers" />
-        <div className="mt-9"><Terms included={climbIncluded} excluded={climbExcluded} /></div>
-        <p className="mt-10 text-center"><Button href="/plan">Build and price a trip</Button></p>
+        </ul>
       </Section>
     </>
   );

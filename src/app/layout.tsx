@@ -1,91 +1,121 @@
 import type { Metadata, Viewport } from "next";
-import { Header, Footer } from "@/components/site-chrome";
-import { TwaChat } from "@/components/twa-chat";
+import { Fraunces, IBM_Plex_Mono, Karla } from "next/font/google";
+import { CookieBanner } from "@/components/cookie-banner";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import { getPosts } from "@/lib/posts";
+import { displayTitle, getTour, tourPath, type TourKind } from "@/lib/tours";
 import { site } from "@/lib/site";
 import "./globals.css";
 
 /**
- * Root layout.
+ * Display and body faces are Kiwano's own — Bjorn and San Francisco Display,
+ * self-hosted from /public/fonts and declared in globals.css.
  *
- * The `TravelAgency` + `AggregateRating` block sits here so it is on every
- * page. The live site publishes no structured data at all, which means 53
- * five-star reviews it has already earned do nothing for it in search results.
+ * Mono survives the reskin: every altitude, price and day number on this site
+ * is set in it so the columns line up. Kiwano has no mono of its own, and
+ * substituting a proportional face would break the one piece of typography
+ * here that carries information rather than mood.
  */
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
+const karla = Karla({ subsets: ["latin"], variable: "--font-karla", display: "swap" });
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: {
-    default: `${site.name} | Kilimanjaro, safaris and Zanzibar`,
-    template: `%s | ${site.name}`,
-  },
+  title: { default: `${site.name} — ${site.tagline}`, template: `%s · ${site.short}` },
   description: site.description,
-  icons: { icon: site.brand.favicon },
+  /* The operator's own favicon artwork, taken from their site. */
+  icons: {
+    icon: [
+      { url: "/brand/favicon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/brand/favicon-270.png", sizes: "270x270", type: "image/png" },
+    ],
+    apple: "/brand/favicon-192.png",
+  },
   openGraph: {
-    type: "website",
+    title: site.name,
+    description: site.description,
+    url: site.url,
     siteName: site.name,
     locale: "en_GB",
-    images: ["/photos/hero-home.jpg"],
+    type: "website",
   },
-  twitter: { card: "summary_large_image" },
-  alternates: { canonical: "/" },
 };
 
+/* Browser chrome picks up the brand green. Lives here, not in `metadata` —
+   Next moved themeColor onto the viewport export. */
 export const viewport: Viewport = {
-  themeColor: "#20201c",
+  themeColor: "#566a1b",
 };
 
-const agencyJsonLd = {
+const schema = {
   "@context": "https://schema.org",
   "@type": "TravelAgency",
   name: site.name,
-  description: site.description,
   url: site.url,
   logo: `${site.url}/brand/logo.png`,
-  telephone: site.contact.phone,
   email: site.contact.email,
-  foundingDate: String(site.established),
+  telephone: site.contact.phone,
   address: {
     "@type": "PostalAddress",
     addressLocality: "Moshi",
-    addressRegion: "Kilimanjaro Region",
+    addressRegion: "Kilimanjaro",
     addressCountry: "TZ",
   },
-  availableLanguage: [...site.languages],
-  sameAs: [...site.social.map((s) => s.url), site.reviews.url],
   aggregateRating: {
     "@type": "AggregateRating",
-    ratingValue: String(site.reviews.rating),
-    reviewCount: String(site.reviews.count),
-    bestRating: "5",
+    ratingValue: site.reviews.rating,
+    reviewCount: site.reviews.count,
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const hasBlog = (await getPosts()).length > 0;
+
+  /* "Popular" column in the mega menu, built from the tour data so the
+     prices never drift from the tour pages. */
+  const pick = (kind: TourKind, key: string) => {
+    const t = getTour(kind, key);
+    if (!t) return null;
+    const days = t.duration ? t.duration.replace(/\s*\|.*$/, "") : "";
+    return { label: displayTitle(t), href: tourPath(t), meta: [/days/.test(displayTitle(t)) ? "" : days, t.from ? `from $${t.from.toLocaleString()}` : "On request"].filter(Boolean).join(" · ") };
+  };
+  const popular = {
+    Safari: [
+      pick("safari", "lion-safari-adventure"),
+      pick("safari", "northern-circuit-tanzania-safari"),
+      pick("safari", "serengeti-wildebeest-migration-experience"),
+    ],
+    Trekking: [
+      pick("kili", "machame-route-6"),
+      pick("kili", "lemosho-route-8"),
+      pick("kili", "marangu-route-6"),
+    ],
+  };
   return (
-    <html lang="en">
-      <body className="antialiased">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(agencyJsonLd) }}
-        />
+    <html lang="en" className={`${plexMono.variable} ${fraunces.variable} ${karla.variable}`}>
+      <body>
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-0 focus:top-0 focus:z-[9999] focus:bg-ink focus:px-6 focus:py-3 focus:text-white"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-tanzanite focus:px-5 focus:py-2 focus:text-glacier"
         >
           Skip to content
         </a>
-        <Header />
-        {/* No top padding, deliberately.
-            Every page on the site opens with a hero photograph, and each hero
-            already reserves the header's 104px inside its own padding. Pushing
-            `main` down as well left a 104px band of flat cream above every
-            photograph — invisible while the header was an opaque white slab,
-            and the first thing you would see through it once it became glass.
-            The photographs now run under the chrome, which is the whole point
-            of the chrome being translucent. */}
+        <SiteHeader hasBlog={hasBlog} popular={popular} />
         <main id="main">{children}</main>
-        <Footer />
-        <TwaChat />
+        <SiteFooter hasBlog={hasBlog} />
+        <CookieBanner />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
       </body>
     </html>
   );

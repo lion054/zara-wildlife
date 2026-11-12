@@ -14,7 +14,7 @@ export const site = {
   },
   reviews: {
     /* Already earned and currently buried at the bottom of the homepage. */
-    platform: "Tripadvisor",
+    platform: "TripAdvisor",
     count: 53,
     rating: 5,
     verified: true,
@@ -37,18 +37,20 @@ export const site = {
     orSimilar: true,
   },
   /**
-   * ⚠️ The live site says only "Members of the Top Tourism and Sustainable
-   * Association" — unnamed, no logo, no number. The sister lodge company
-   * displays nine real accreditations. These need real membership numbers
-   * before they go live; each renders with a marker until `number` is filled.
+   * Memberships shown on the previous site as five logos under the heading
+   * "Members of the Top Tourism and Sustainable Association". Names are read
+   * from the logo artwork; the site itself names none of them.
    */
-  credentials: [
-    { name: "TATO", full: "Tanzania Association of Tour Operators", number: "" },
-    { name: "TALA", full: "Tourist Agents Licensing Authority", number: "" },
-    { name: "TANAPA", full: "Tanzania National Parks Authority", number: "" },
-    { name: "KPAP", full: "Kilimanjaro Porters Assistance Project", number: "" },
-    { name: "TTB", full: "Tanzania Tourist Board", number: "" },
+  members: [
+    { name: "ATTA", full: "African Travel & Tourism Association", logo: "/brand/members/atta.png", w: 282, h: 177 },
+    { name: "TATO", full: "Tanzania Association of Tour Operators", logo: "/brand/members/tatologo.png", w: 300, h: 196 },
+    { name: "ASTA", full: "ASTA", logo: "/brand/members/asta.png", w: 250, h: 251 },
+    { name: "APTA", full: "Association for the Promotion of Tourism to Africa", logo: "/brand/members/apta.png", w: 133, h: 59 },
+    { name: "MKPS", full: "Mount Kilimanjaro Porters Society", logo: "/brand/members/mkps1.png", w: 300, h: 300 },
   ],
+  payment: { logo: "/brand/members/payment-01.png", w: 1024, h: 201 },
+  /** Online payment page. Supplied by the backend; the Pay online links hide while it is empty. */
+  payments: { url: process.env.NEXT_PUBLIC_PAYMENTS_URL ?? "", provider: "Pesapal" },
   languages: ["English", "French", "German", "Spanish"],
   /**
    * The operator's real brand assets, taken from their live site
@@ -103,51 +105,54 @@ export type NavItem = {
   label: string;
   href: string;
   children?: { label: string; href: string; note?: string }[];
+  /** A photo card shown beside the links in the desktop mega menu. */
+  featured?: { title: string; note: string; href: string; imageKey: string; cta: string };
 };
 
+/* Only the two product lines with enough to show get a menu. The rest are
+   single links: a dropdown holding one item that repeats its parent is noise,
+   and every extra panel is another thing a keyboard user has to tab through. */
 export const nav: NavItem[] = [
   {
     label: "Safari",
     href: "/safaris",
     children: [
-      { label: "All safaris", href: "/safaris", note: "Three itineraries, priced" },
+      { label: "Safari packages", href: "/safaris", note: "Seven itineraries, day by day" },
       { label: "Destinations", href: "/safaris#parks", note: "Ten parks, three circuits" },
-      { label: "Experiences", href: "/safaris#experiences", note: "Balloon, walking, night drives" },
+      { label: "Experiences", href: "/safaris#experiences", note: "Balloon, walking, birding" },
+      { label: "Safari FAQs", href: "/faqs/safari", note: "Before you book" },
     ],
+    featured: {
+      title: "Serengeti Wildebeest Migration",
+      note: "Seven days, built around where the herds are.",
+      href: "/safaris/serengeti-wildebeest-migration",
+      imageKey: "hero-safaris",
+      cta: "See the itinerary",
+    },
   },
   {
     label: "Trekking",
     href: "/kilimanjaro",
     children: [
-      { label: "Climbing Kilimanjaro", href: "/kilimanjaro", note: "Five routes compared" },
-      { label: "Group departures", href: "/departures", note: "Fixed dates, real seats" },
-      { label: "Mount Meru", href: "/kilimanjaro/mount-meru-4-day", note: "The best warm-up" },
+      { label: "Climbing Kilimanjaro", href: "/kilimanjaro", note: "Every route compared" },
+      { label: "Kilimanjaro packages", href: "/kilimanjaro#packages", note: "Fourteen itineraries and prices" },
+      { label: "Group departures", href: "/departures", note: "Fixed dates, shared crew" },
+      { label: "Mount Meru", href: "/kilimanjaro/packages/mount-meru-4", note: "The best warm-up" },
+      { label: "Kilimanjaro FAQs", href: "/faqs/kilimanjaro", note: "Before you book" },
+      { label: "Plan my climb", href: "/plan", note: "Build and price your trip" },
     ],
+    featured: {
+      title: "Join a group climb",
+      note: "Fixed dates below the private price, with a live seat count.",
+      href: "/departures",
+      imageKey: "hero-departures",
+      cta: "See the calendar",
+    },
   },
-  {
-    label: "Combo Safari",
-    href: "/combos",
-    children: [
-      { label: "Combo trips", href: "/combos", note: "Climb, safari, beach" },
-      { label: "Questions", href: "/combos#faq", note: "How long, when, where you sleep" },
-    ],
-  },
-  {
-    label: "Day Trips",
-    href: "/day-trips",
-    children: [
-      { label: "All day trips", href: "/day-trips", note: "Ten, with full price ladders" },
-      { label: "Plan my trip", href: "/plan", note: "Build and price a basket" },
-    ],
-  },
-  {
-    label: "Zanzibar",
-    href: "/zanzibar",
-    children: [
-      { label: "Beach holidays", href: "/zanzibar", note: "Two nights to a week" },
-      { label: "When to come", href: "/zanzibar#seasons", note: "Including the months we would not" },
-    ],
-  },
+  { label: "Combo", href: "/combos" },
+  { label: "Day trips", href: "/day-trips" },
+  { label: "Zanzibar", href: "/zanzibar" },
+  { label: "Halal Tours", href: "/halal-tours" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];

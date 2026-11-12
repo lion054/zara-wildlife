@@ -1,302 +1,215 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
-import { useFormStatus } from "react-dom";
-import { submitEnquiry, type EnquiryResult } from "@/app/actions";
-import { site } from "@/lib/site";
-import { earliestArrival } from "@/lib/format";
-import { haptic } from "@/lib/haptics";
-import { TripadvisorOwl } from "@/components/tripadvisor";
+import { useState } from "react";
+import { submitEnquiry, type EnquiryKind, type EnquiryResult } from "@/lib/enquiries";
 
 /**
- * The enquiry form, and the quote and booking variants of it.
+ * The one place a visitor can actually reach the office.
  *
- * Three shapes, because three different things are being asked:
- *
- *   enquiry   name, email, roughly when, party size
- *   quote     plus the two or three questions that ACTUALLY set that price —
- *             hotel standard and board for Zanzibar, date and pickup for a day
- *             trip, route and beach nights for a combination
- *   booking   plus the deposit terms restated at the point of commitment, and
- *             an explicit acknowledgement
- *
- * The quote variant exists because every "ask for a price" link used to drop
- * the visitor onto a generic contact form with a raw slug in the URL. Clicking
- * it on the Marangu Waterfalls day trip produced a banner reading "Group
- * departure marangu-waterfalls" and a pre-written message about joining a group
- * departure — wrong product, and words the visitor never typed.
- *
- * The open-text field is optional throughout. Requiring a paragraph before
- * somebody can ask a price is pure abandonment.
+ * Handles the three states a form has to have and previously did not:
+ * submitting (button disabled, label changes), succeeded (the form is
+ * replaced by the confirmation, so nobody sends twice), and failed (errors
+ * appear against the field that caused them, not as a banner).
  */
 
-export type QuoteKind = "beach" | "daytrip" | "combo" | "halal" | null;
-
-const QUOTE_LEAD: Record<string, string> = {
-  beach:
-    "Zanzibar is the one thing we quote rather than list — the figure moves with the hotel standard and the season by more than an honest “from” would survive.",
-  daytrip:
-    "We publish no rate card for this one, so we price it to your group and your date rather than guess at it.",
-  combo:
-    "The beach half of this trip is in Zanzibar, which we quote rather than list. Tell us the shape and we will price the whole thing in one go.",
-  halal:
-    "Most of our halal offer is still being confirmed with the Moshi office, so these two answers decide whether we can do what you need — and we would rather say no than guess.",
-};
-
 const field =
-  "w-full rounded-[3px] border border-line bg-white px-4 py-3 text-[15px] text-ink focus:border-olive-deep";
-const labelCls = "mb-1.5 block text-[13px] font-semibold text-slate";
-
-function Submit({ label }: { label: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="inline-block rounded-[3px] bg-brick-text px-7 py-3.5 text-sm font-semibold text-white hover:bg-brick-dark disabled:opacity-60"
-    >
-      {pending ? "Sending…" : label}
-    </button>
-  );
-}
+  "w-full rounded-lg border border-scree/60 bg-white px-4 py-3 text-sm text-basalt " +
+  "focus:border-tanzanite focus:outline-none";
+const fieldBad = "border-sunrise bg-sunrise/5";
+const labelCls = "label mb-2 block text-scree";
 
 export function EnquiryForm({
-  kind = "trip",
-  subject = "",
-  booking = false,
-  quoteKind = null,
-  quoteLabel = "",
-  context = "",
+  kind = "contact",
   hidden = {},
-  submitLabel,
+  submitLabel = "Send message",
+  compact = false,
+  children,
+  extra,
 }: {
-  kind?: string;
-  subject?: string;
-  booking?: boolean;
-  quoteKind?: QuoteKind;
-  quoteLabel?: string;
-  /** A departure or product this request is about, confirmed back to the reader. */
-  context?: string;
+  kind?: EnquiryKind;
+  /** Context the office needs but the visitor should not have to type. */
   hidden?: Record<string, string>;
   submitLabel?: string;
+  compact?: boolean;
+  children?: React.ReactNode;
+  /** Extra fields rendered just above the message box. */
+  extra?: React.ReactNode;
 }) {
-  const [state, action] = useActionState<EnquiryResult | null, FormData>(submitEnquiry, null);
-  const err = state?.errors ?? {};
+  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [result, setResult] = useState<EnquiryResult | null>(null);
 
-  /**
-   * The answer, felt as well as read.
-   *
-   * `seen` guards against re-firing when the component re-renders for any
-   * reason other than a new result — a submit that failed validation twice in
-   * a row is two distinct answers and should buzz twice, but one answer
-   * re-rendered is not.
-   */
-  const seen = useRef<EnquiryResult | null>(null);
-  useEffect(() => {
-    if (!state || seen.current === state) return;
-    seen.current = state;
-    haptic("reply");
-  }, [state]);
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setState("sending");
+    const data = new FormData(e.currentTarget);
+    Object.entries(hidden).forEach(([k, v]) => data.set(k, v));
+    const res = await submitEnquiry(kind, data);
+    setResult(res);
+    setState(res.ok ? "done" : "idle");
+  }
 
-  const defaultLabel = booking ? "Request to book" : quoteKind ? "Send price request" : "Send enquiry";
+  if (state === "done" && result?.ok) {
+    return (
+      <div
+        role="status"
+        className={`rounded-[10px] border p-6 ${
+          result.degraded
+            ? "border-sunrise bg-sunrise/10"
+            : "border-brand bg-brand/10"
+        }`}
+      >
+        <h3 className="font-display text-xl">
+          {result.degraded ? "Recorded — but please double-check" : "Message sent"}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-scree">{result.message}</p>
+      </div>
+    );
+  }
+
+  const err = result?.errors ?? {};
 
   return (
-    <form action={action} noValidate>
-      <input type="hidden" name="subject" value={subject || kind} />
-      {booking && <input type="hidden" name="booking" value="1" />}
-      {Object.entries(hidden).map(([k, v]) => (
-        <input key={k} type="hidden" name={k} value={v} />
-      ))}
-      {/* Honeypot — visually and programmatically hidden from people. */}
-      <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" />
+    <form onSubmit={onSubmit} className="space-y-5" noValidate>
+      {/* Honeypot — off-screen, not display:none, so bots still fill it. */}
+      <div className="absolute left-[-9999px]" aria-hidden="true">
+        <label htmlFor={`company-${kind}`}>Company</label>
+        <input id={`company-${kind}`} name="company" tabIndex={-1} autoComplete="off" />
+      </div>
 
-      {(context || quoteKind) && (
-        <div className="mb-[22px] border-l-[3px] border-olive-deep bg-paper px-[18px] py-3.5">
-          <strong className="label mb-1 block text-olive-deep">
-            {quoteKind ? "Price request" : "Group departure"}
-          </strong>
-          <span className="block text-base font-semibold text-ink">{quoteLabel || context}</span>
-          {quoteKind && (
-            <span className="mt-1.5 block text-[13px] leading-[1.65] text-muted">{QUOTE_LEAD[quoteKind]}</span>
-          )}
-        </div>
-      )}
+      {children}
 
-      <div className="grid gap-x-5 sm:grid-cols-2">
-        <div className="mb-[18px]">
-          <label className={labelCls} htmlFor={`f-name-${kind}`}>Your name</label>
-          <input id={`f-name-${kind}`} name="name" type="text" autoComplete="name" required
-            aria-invalid={!!err.name} className={`${field} ${err.name ? "border-brick-dark" : ""}`} />
-          {err.name && <p className="mt-1.5 text-[13px] text-brick-dark">{err.name}</p>}
-        </div>
-        <div className="mb-[18px]">
-          <label className={labelCls} htmlFor={`f-email-${kind}`}>Email</label>
-          <input id={`f-email-${kind}`} name="email" type="email" autoComplete="email" required
-            aria-invalid={!!err.email} className={`${field} ${err.email ? "border-brick-dark" : ""}`} />
-          {err.email && <p className="mt-1.5 text-[13px] text-brick-dark">{err.email}</p>}
-        </div>
-
-        <div className="mb-[18px]">
-          <label className={labelCls} htmlFor={`f-when-${kind}`}>
-            {booking ? "Preferred start date" : "Roughly when"}
+      {!compact && (
+        <div>
+          <label className={labelCls} htmlFor={`name-${kind}`}>
+            Your name
           </label>
           <input
-            id={`f-when-${kind}`} name="when"
-            type={booking ? "date" : "text"}
-            min={booking ? earliestArrival() : undefined}
-            placeholder={booking ? undefined : "August 2027, or flexible"}
-            className={field}
+            id={`name-${kind}`}
+            name="name"
+            autoComplete="name"
+            aria-invalid={!!err.name}
+            aria-describedby={err.name ? `name-${kind}-err` : undefined}
+            className={`${field} ${err.name ? fieldBad : ""}`}
           />
-          {booking && (
-            <p className="mt-1.5 text-xs text-muted">
-              Two weeks out at the earliest — permits and flights need the lead time.
+          {err.name && (
+            <p id={`name-${kind}-err`} className="mt-1.5 text-xs text-sunrise-ink">
+              {err.name}
             </p>
           )}
         </div>
-        <div className="mb-[18px]">
-          <label className={labelCls} htmlFor={`f-people-${kind}`}>How many of you</label>
-          <select id={`f-people-${kind}`} name="people" defaultValue="2" className={field}>
-            {[1, 2, 3, 4, 5, 6].map((n) => <option key={n}>{n}</option>)}
-            <option>7 or more</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Only the questions that genuinely set THIS kind of price. */}
-      {quoteKind === "beach" && (
-        <QuoteBlock why="Those two answers are most of a Zanzibar price. With them we can quote properly rather than send you a range.">
-          <Select name="standard" label="Hotel standard" options={[
-            "No preference yet",
-            "Mid-range — clean, comfortable, good location",
-            "Superior — beachfront, pool, a step up",
-            "Luxury — the best on the island",
-          ]} kind={kind} />
-          <Select name="board" label="Board basis" options={[
-            "No preference yet", "Bed and breakfast", "Half board", "Full board", "All inclusive",
-          ]} kind={kind} />
-        </QuoteBlock>
       )}
 
-      {/* Halal is the one quote block that is not about price.
-          The other three ask the questions that set a figure. These ask the
-          questions that decide whether we can meet an obligation at all —
-          how strict the catering has to be, and whether the trip falls in
-          Ramadan. Getting either wrong is not a pricing error. */}
-      {quoteKind === "halal" && (
-        <QuoteBlock why="Catering standard and Ramadan timing are what we have to check with the office before we can promise anything. Tell us both and we will come back with a straight yes or no.">
-          <Select name="catering" label="Catering standard you keep" kind={kind} options={[
-            "No preference stated yet",
-            "Certified halal meat only",
-            "Halal meat, or vegetarian where it cannot be certified",
-            "Vegetarian or seafood throughout — simplest to guarantee",
-            "No pork or alcohol, otherwise flexible",
-          ]} />
-          <Select name="observance" label="Anything we should plan around" kind={kind} options={[
-            "Nothing in particular",
-            "Prayer stops through the day",
-            "Travelling during Ramadan",
-            "Women-only party or female guide",
-            "More than one of these — I will explain below",
-          ]} />
-        </QuoteBlock>
-      )}
-
-      {quoteKind === "daytrip" && (
-        <QuoteBlock why="This one has no published rate card, so we price it to your group and your date. Both answers above set it.">
-          <div>
-            <label className={labelCls} htmlFor={`f-dt-${kind}`}>Which day</label>
-            <input id={`f-dt-${kind}`} name="tripDate" type="date" min={earliestArrival()} className={field} />
-          </div>
-          <Select name="pickup" label="Picking up from" kind={kind}
-            options={["Moshi", "Arusha", "Kilimanjaro Airport", "Somewhere else"]} />
-        </QuoteBlock>
-      )}
-
-      {quoteKind === "combo" && (
-        <QuoteBlock why="The climb is fixed by the route; the beach half is not. These two set the shape and most of the price.">
-          <Select name="route" label="Which climb, if you know" kind={kind} options={[
-            "Not decided — advise me",
-            "Lemosho, 8 days — best odds",
-            "Machame, 7 days — the classic",
-            "Marangu, 6 days — huts, gentlest gradient",
-            "Rongai, 7 days — quietest",
-            "Northern Circuit, 9 days — highest summit rate",
-          ]} />
-          <Select name="beachNights" label="Nights on the beach" kind={kind}
-            options={["Not sure", "2 or 3", "4 or 5", "A week", "Longer"]} />
-        </QuoteBlock>
-      )}
-
-      <div className="mb-[18px]">
-        <label className={labelCls} htmlFor={`f-msg-${kind}`}>
-          Anything we should know <span className="font-normal text-muted">(optional)</span>
+      <div>
+        <label className={labelCls} htmlFor={`email-${kind}`}>
+          Email
         </label>
-        <textarea id={`f-msg-${kind}`} name="message" rows={4}
-          placeholder="Which route or parks, what you want out of the trip, anything we should know."
-          className={`${field} resize-y`} />
-      </div>
-
-      {booking && (
-        <div className="mb-6 rounded border border-line bg-paper px-[26px] py-6">
-          <h4 className="mb-3 text-[15px]">What happens when you send this</h4>
-          <ol className="mb-[18px] list-decimal space-y-1.5 pl-5 text-sm leading-[1.7] text-slate">
-            <li>We confirm in writing that your dates, crew and vehicles are actually available — usually within one working day.</li>
-            <li>You get a firm price and a deposit link. <strong>Nothing is charged until you have both.</strong></li>
-            <li>A <strong>30% deposit</strong> confirms the booking. The balance is due <strong>45 days</strong> before you arrive.</li>
-            <li>Cancel more than 60 days out and the deposit moves to another date within a year. Inside 45 days the balance is non-refundable — which is what travel insurance is for.</li>
-          </ol>
-          <label className="grid grid-cols-[20px_1fr] items-start gap-2.5 border-t border-line pt-4 text-[13px] leading-[1.6] text-slate">
-            <input type="checkbox" name="terms" required className="mt-0.5 size-[17px] accent-olive-deep" />
-            <span>
-              I understand this is a request, not a booking, and that nothing is charged until I have
-              confirmed availability and a firm price.
-              {err.terms && <span className="mt-1 block text-brick-dark">{err.terms}</span>}
-            </span>
-          </label>
-        </div>
-      )}
-
-      <Submit label={submitLabel ?? defaultLabel} />
-
-      <div role="status" aria-live="polite">
-        {state && (
-          <p className={`mt-3.5 text-sm leading-[1.65] ${state.delivered ? "text-olive-deep" : "text-brick-dark"}`}>
-            {state.delivered ? <strong>{state.message}</strong> : state.message}
+        <input
+          id={`email-${kind}`}
+          name="email"
+          type="email"
+          autoComplete="email"
+          aria-invalid={!!err.email}
+          aria-describedby={err.email ? `email-${kind}-err` : undefined}
+          className={`${field} ${err.email ? fieldBad : ""}`}
+        />
+        {err.email && (
+          <p id={`email-${kind}-err`} className="mt-1.5 text-xs text-sunrise-ink">
+            {err.email}
           </p>
         )}
       </div>
 
-      {/* Trust where the decision is made, not only in the header — and with
-          the owl on it, so it is Tripadvisor's number rather than ours. */}
-      <p className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-line pt-3.5 text-[13px] text-muted">
-        <TripadvisorOwl size={16} />
-        <span aria-hidden className="tracking-[1px] text-amber">{"★".repeat(site.reviews.rating)}</span>
-        <span><strong className="text-ink">{site.reviews.rating}.0</strong> from {site.reviews.count} reviews on {site.reviews.platform}</span>
-        <span aria-hidden>·</span>
-        <span>Operating from Moshi since {site.established}</span>
-        <span aria-hidden>·</span>
-        <span>We never pass your details on</span>
-      </p>
+      {!compact && (
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label className={labelCls} htmlFor={`phone-${kind}`}>
+              Phone number
+            </label>
+            <input id={`phone-${kind}`} name="phone" type="tel" autoComplete="tel" className={field} />
+          </div>
+          <div>
+            <label className={labelCls} htmlFor={`country-${kind}`}>
+              Country
+            </label>
+            <input id={`country-${kind}`} name="country" autoComplete="country-name" className={field} />
+          </div>
+        </div>
+      )}
+
+      {!compact && (
+        <>
+          {!hidden.tour && (
+          <div>
+            <label className={labelCls} htmlFor={`topic-${kind}`}>
+              What it is about
+            </label>
+            <select
+              id={`topic-${kind}`}
+              name="topic"
+              className={field}
+              defaultValue={hidden.interest === "halal" ? "A halal tour" : undefined}
+            >
+              <option>A Kilimanjaro climb</option>
+              <option>A safari</option>
+              <option>Zanzibar</option>
+              <option>A halal tour</option>
+              <option>A combo trip</option>
+              <option>A group departure</option>
+              <option>Day trips</option>
+              <option>An existing booking</option>
+              <option>Agents and trade</option>
+            </select>
+          </div>
+          )}
+          <div>
+            <label className={labelCls} htmlFor={`start-${kind}`}>
+              Arrival date
+            </label>
+            <input
+              id={`start-${kind}`}
+              name="start"
+              type="date"
+              min={new Date().toISOString().slice(0, 10)}
+              aria-invalid={!!err.start}
+              className={`${field} ${err.start ? fieldBad : ""}`}
+            />
+            {err.start && <p className="mt-1.5 text-xs text-sunrise-ink">{err.start}</p>}
+          </div>
+          {extra}
+          <div>
+            <label className={labelCls} htmlFor={`message-${kind}`}>
+              Message
+            </label>
+            <textarea
+              id={`message-${kind}`}
+              name="message"
+              rows={6}
+              aria-invalid={!!err.message}
+              aria-describedby={err.message ? `message-${kind}-err` : undefined}
+              className={`${field} ${err.message ? fieldBad : ""}`}
+            />
+            {err.message && (
+              <p id={`message-${kind}-err`} className="mt-1.5 text-xs text-sunrise-ink">
+                {err.message}
+              </p>
+            )}
+          </div>
+        </>
+      )}
+
+      <button
+        type="submit"
+        disabled={state === "sending"}
+        className="w-full rounded-full bg-brand px-6 py-3.5 text-center text-xs font-semibold uppercase tracking-[0.12em] text-basalt transition-all hover:bg-brand-bright hover:shadow-[0_2px_20px_0_rgba(157,171,31,0.5)] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {state === "sending" ? "Sending…" : submitLabel}
+      </button>
+
+      {result && !result.ok && (
+        <p role="alert" className="text-xs text-sunrise-ink">
+          {result.message}
+        </p>
+      )}
     </form>
-  );
-}
-
-function QuoteBlock({ why, children }: { why: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-[18px]">
-      <div className="grid gap-x-5 sm:grid-cols-2">{children}</div>
-      <p className="mt-1 border-l-2 border-line pl-3.5 text-[13px] leading-[1.65] text-muted">{why}</p>
-    </div>
-  );
-}
-
-function Select({ name, label, options, kind }: { name: string; label: string; options: string[]; kind: string }) {
-  return (
-    <div className="mb-[18px]">
-      <label className={labelCls} htmlFor={`f-${name}-${kind}`}>{label}</label>
-      <select id={`f-${name}-${kind}`} name={name} className={field}>
-        {options.map((o, i) => <option key={o} value={i === 0 ? "" : o}>{o}</option>)}
-      </select>
-    </div>
   );
 }

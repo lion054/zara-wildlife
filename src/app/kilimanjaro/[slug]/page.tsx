@@ -1,319 +1,345 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { routes, getRoute, zones } from "@/lib/routes";
-import { departures } from "@/lib/trips";
-import { climbIncluded, climbExcluded } from "@/lib/inclusions";
-import { reviews } from "@/lib/reviews";
-import { site, guides, crewSize } from "@/lib/site";
-import { photo } from "@/lib/photos";
-import { money, metres, totalAscent, longDate, dateParts } from "@/lib/format";
-import { Section, SectionTitle, PageHero, Pill, Unverified, Eyebrow, difficultyTone } from "@/components/primitives";
+import { notFound } from "next/navigation";
+import { getTour, tourPath } from "@/lib/tours";
+import { BookBar } from "@/components/book-bar";
+import {
+  Contour,
+  Eyebrow,
+  Photo,
+  SeatBar,
+} from "@/components/primitives";
 import { RouteProfile } from "@/components/route-profile";
-import { RouteTable, Terms, ReviewBand, GuideCard, BookBar, NextDeparture, SeatBarRow } from "@/components/blocks";
+import { climbExcluded, climbIncluded } from "@/lib/inclusions";
+import { getRoute, routes, zones } from "@/lib/routes";
+import { photo } from "@/lib/photos";
+import { site } from "@/lib/site";
+import { upcomingGroupDepartures } from "@/lib/departures";
 
-/** All routes prerender — there are six, and they are the highest-value pages. */
 export function generateStaticParams() {
   return routes.map((r) => ({ slug: r.slug }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const r = getRoute(slug);
-  if (!r) return {};
-  const mountain = r.mountain === "meru" ? "Mount Meru" : "Kilimanjaro";
+  const route = getRoute(slug);
+  if (!route) return { title: "Route not found" };
   return {
-    title: `${r.name} Route — ${r.days} days on ${mountain}`,
-    description: `${r.strapline} ${r.days} days, ${r.difficulty.toLowerCase()}, from ${money(r.price)} per person. Full altitude profile, day-by-day itinerary and published rate card.`,
-    alternates: { canonical: `/kilimanjaro/${r.slug}` },
-    openGraph: { images: [photo(r.photoKey)?.src ?? "/photos/hero-kilimanjaro.webp"] },
+    title: `${route.name} — ${route.days} days`,
+    description: route.summary,
   };
 }
 
-export default async function RoutePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function RoutePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const route = getRoute(slug);
   if (!route) notFound();
 
-  const mountain = route.mountain === "meru" ? "Mount Meru" : "Kilimanjaro";
-  const others = routes.filter((r) => r.slug !== route.slug && r.mountain === route.mountain);
-  const mine = departures.filter((d) => d.routeSlug === route.slug);
-  const rel = reviews.filter((r) => /climb|kilimanjaro|trek|route|summit|meru/i.test(r.trip ?? "")).slice(0, 3);
-  const highDays = route.itinerary.filter((d) => d.high && d.high > d.altitude).length;
+  const totalGain = route.itinerary.reduce((sum, d, i) => {
+    const prev = i === 0 ? route.itinerary[0].altitude : route.itinerary[i - 1].altitude;
+    const top = d.high ?? d.altitude;
+    return sum + Math.max(0, top - prev);
+  }, 0);
 
-  const facts = [
-    { k: "Days on the mountain", v: String(route.days) },
-    { k: "Summit", v: `${route.summit}, ${metres(route.summitAltitude)}` },
-    { k: "Difficulty", v: route.difficulty, pill: true },
-    { k: "Summit rate", v: `${route.successRate}%`, mark: route.successVerified ? null : "Own data to confirm" },
-    { k: "Trail traffic", v: route.traffic },
-    { k: "Total ascent", v: `about ${metres(totalAscent(route))}` },
-    { k: "Climb-high days", v: String(highDays) },
-    { k: "Scenery", v: `${route.scenery} of 5` },
-  ];
+  const LIVE: Record<string, string> = {
+    "lemosho-8-day": "lemosho-route-8",
+    "machame-7-day": "machame-route-7",
+    "marangu-6-day": "marangu-route-6",
+    "rongai-7-day": "rongai-route-7",
+    "northern-circuit-9-day": "northern-circuit-route-9",
+    "mount-meru-4-day": "mount-meru-4",
+  };
+  const live = getTour(["kili", "meru"], LIVE[route.slug] ?? "");
+  const liveRates = live && live.ladder.length > 0 ? live.ladder : null;
 
-  const tripJsonLd = {
+  /* The group departures of this route, live from Tanova. */
+  const GROUP: Record<string, string> = {
+    "lemosho-8-day": "lemosho-route-8",
+    "machame-7-day": "machame-route-7",
+    "marangu-6-day": "marangu-route-6",
+    "rongai-7-day": "rongai-route-7",
+  };
+  const routeDepartures = GROUP[route.slug]
+    ? (await upcomingGroupDepartures(40)).filter((d) => d.tourKey === GROUP[route.slug] && d.open).slice(0, 4)
+    : [];
+
+  /* Per-trip structured data. The site-level TravelAgency block says who we
+     are; this says what this page sells, which is what earns a price and a
+     duration in search results. */
+  const schema = {
     "@context": "https://schema.org",
-    "@type": "Trip",
-    name: `${route.name} Route, ${route.days} days`,
+    "@type": "Product",
+    name: `${route.name} — ${route.days}-day Kilimanjaro climb`,
     description: route.summary,
-    url: `${site.url}/kilimanjaro/${route.slug}`,
-    provider: { "@type": "TravelAgency", name: site.name, url: site.url },
-    itinerary: { "@type": "ItemList", numberOfItems: route.days },
+    image: photo(route.photoKey)?.src,
+    brand: { "@type": "Brand", name: site.name },
     offers: {
-      "@type": "Offer", price: String(route.price), priceCurrency: "USD",
-      availability: "https://schema.org/InStock", url: `${site.url}/kilimanjaro/${route.slug}`,
+      "@type": "Offer",
+      price: route.price,
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: `${site.url}/kilimanjaro/${route.slug}`,
     },
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tripJsonLd) }} />
-
-      <PageHero
-        eyebrow={`${mountain} · ${route.days} days`}
-        title={`${route.name} Route`}
-        lead={route.strapline}
-        photoKey={route.photoKey}
-        crumbs={[
-          { label: "Home", href: "/" },
-          { label: "Climb", href: "/kilimanjaro" },
-          { label: `${route.name} Route`, href: `/kilimanjaro/${route.slug}` },
-        ]}
-      />
-
-      <Section tone="cream" className="!pb-[60px]">
-        <div className="grid gap-10 lg:grid-cols-[8fr_4fr]">
-          <div>
-            <Eyebrow>The shape of the climb</Eyebrow>
-            <h2 className="mb-3.5 text-[33px] leading-[1.22]">
-              {route.days} days, {metres(route.itinerary[0].altitude)} to {metres(route.summitAltitude)}
-            </h2>
-            <p className="prose-lead">{route.summary}</p>
-          </div>
-          <div className="rounded bg-paper p-6">
-            <p className="label text-muted">Best for</p>
-            <p className="mt-2 text-base leading-[1.7] text-ink">{route.bestFor}</p>
-          </div>
-        </div>
-
-        <NextDeparture route={route} />
-
-        <div className="mt-10"><RouteProfile route={route} /></div>
-
-        <div className="mt-[50px] grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {facts.map((f) => (
-            <div key={f.k}>
-              <p className="label mb-1.5 text-muted">{f.k}</p>
-              {f.pill ? (
-                <Pill tone={difficultyTone(f.v)}>{f.v}</Pill>
-              ) : (
-                <p className="metric text-[19px] font-bold text-ink">{f.v}</p>
-              )}
-              {f.mark && <p className="mt-1.5"><Unverified>{f.mark}</Unverified></p>}
-            </div>
-          ))}
-        </div>
-
-        {route.published && !route.published.sameLength && (
-          <div className="mt-[34px] rounded border border-[#e0d4a6] bg-[#f6efd6] px-[26px] py-6">
-            <h3 className="mb-2.5 text-[17px] text-[#7a5a12]">A note on length and price</h3>
-            <p className="text-[15px] leading-[1.75] text-slate">
-              We currently also sell this route as <strong>{route.published.name}</strong> —{" "}
-              {route.published.hikingDays} hiking days, from{" "}
-              <strong className="metric">{money(route.published.from)}</strong>. The {route.days}-day
-              version described on this page adds extra acclimatisation, which is why its summit rate
-              is higher and its price is not the same. The rate shown here is an estimate for the
-              longer climb until the office confirms it. Do not quote the shorter product&rsquo;s
-              price for this climb.
-            </p>
-          </div>
-        )}
-      </Section>
-
-      {/* Day by day */}
-      <Section tone="sand" id="itinerary">
-        <div className="grid gap-12 lg:grid-cols-[4fr_8fr]">
-          <div>
-            <Eyebrow>Day by day</Eyebrow>
-            <h2 className="text-[33px] leading-[1.22]">What each day is</h2>
-            <p className="prose-lead mt-3.5">{route.character}</p>
-            <p className="prose-lead">
-              Distances are approximate and depend on the exact camp allocation on the day. Walking
-              hours are what a normal group takes, not a target.
-            </p>
-            <div className="mt-5 rounded border border-line bg-white p-5">
-              <p className="label mb-2 text-muted">Before and after</p>
-              <p className="text-[15px] leading-[1.7] text-slate">
-                Two nights at the <strong>{site.baseHotel.name}</strong> in {site.baseHotel.town}
-                {site.baseHotel.orSimilar ? " or similar" : ""} are in the price — one before you walk
-                in, one after you come down. {site.baseHotel.note}
+      <section className="border-b border-mist px-6 py-14 md:py-16">
+        <div className="mx-auto max-w-6xl">
+          <p className="label text-tanzanite">
+            {route.mountain === "meru" ? "Mount Meru" : "Kilimanjaro"} ·{" "}
+            {route.days} days · {route.difficulty}
+          </p>
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <h1 className="font-display text-5xl md:text-6xl">{route.name}</h1>
+              <p className="mt-4 max-w-xl text-lg leading-relaxed text-scree">
+                {route.strapline}
               </p>
             </div>
-          </div>
-
-          <div>
-            {route.itinerary.map((d) => {
-              const gained = d.high && d.high > d.altitude ? d.high - d.altitude : 0;
-              return (
-                <div key={d.day} className="grid grid-cols-[62px_1fr] gap-[22px] border-b border-line py-6 last:border-b-0">
-                  <span className="flex size-[54px] items-center justify-center rounded-full bg-ink text-[15px] font-bold text-white">
-                    D{d.day}
-                  </span>
-                  <div>
-                    <h3 className="mb-1.5 text-[18px]">{d.from} → {d.to}</h3>
-                    <ul className="my-2.5 flex flex-wrap gap-1.5">
-                      <li className="rounded-full px-3 py-1 text-xs font-semibold text-white"
-                        style={{ background: `var(--color-zone-${d.zone})` }}>
-                        {zones[d.zone].label}
-                      </li>
-                      {[`Sleep at ${metres(d.altitude)}`, d.high ? `High point ${metres(d.high)}` : null, d.distance, `${d.hours} walking`]
-                        .filter(Boolean)
-                        .map((t) => (
-                          <li key={String(t)} className="metric rounded-full border border-line bg-white px-3 py-1 text-xs text-slate">{t}</li>
-                        ))}
-                    </ul>
-                    <p className="text-[15px] text-muted">{d.note}</p>
-                    {gained > 0 && (
-                      <p className="mt-2 text-[13px] font-semibold text-olive-deep">
-                        Climb high, sleep low — you top out {metres(gained)} above where you sleep.
-                        This is the day that builds your acclimatisation.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Section>
-
-      {/* Price */}
-      <Section tone="cream" id="price">
-        <SectionTitle
-          eyebrow="The rate card"
-          title="What it costs, by how many of you there are"
-          lead="Park fees, crew and vehicles do not scale with party size, so the per-person rate falls sharply as the group grows. The whole ladder is published rather than a single figure only a large group could get."
-        />
-        <div className="mt-10 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-          {route.groupPricing.map((g) => (
-            <div key={g.size} className="rounded border border-line px-3 py-3.5 text-center">
-              <p className="label text-muted">{g.size}</p>
-              <p className="metric mt-1 text-[21px] font-bold text-olive-deep">{money(g.price)}</p>
+            <div className="text-right">
+              <p className="metric text-4xl text-tanzanite">
+                ${route.price.toLocaleString()}
+              </p>
+              <p className="label text-scree">per person, two climbers</p>
+              <Link
+                href={`/plan?route=${route.slug}`}
+                className="mt-4 inline-flex rounded-full bg-brand px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.12em] text-basalt transition-all hover:bg-brand-bright hover:shadow-[0_2px_20px_0_rgba(157,171,31,0.5)]"
+              >
+                Book this climb
+              </Link>
             </div>
-          ))}
+          </div>
+
+          <div className="mt-12">
+            <RouteProfile route={route} />
+          </div>
         </div>
-        <p className="mt-3 text-[13px] text-muted">
-          Per person, in US dollars.{" "}
-          {route.priceVerified
-            ? "Taken from the operator's own published rate card."
-            : <><Unverified>Rate sheet to confirm</Unverified> These are estimates for this route length.</>}
-        </p>
+      </section>
 
-        <div className="mt-[50px]"><Terms included={climbIncluded} excluded={climbExcluded} /></div>
-
-        <div className="mt-5 rounded bg-paper p-[30px]">
-          <h3 className="mb-3 text-[19px]">Paying for it</h3>
-          <p className="mb-2 leading-[1.75] text-muted">
-            A 30% deposit confirms your dates and your crew. The balance is due 45 days before you
-            walk in. Cancel more than 60 days out and the deposit transfers to another date within a
-            year; inside 45 days the balance is non-refundable, which is what your travel insurance
-            is for.
-          </p>
-          <p className="leading-[1.75] text-muted">
-            Comprehensive travel insurance covering trekking to {metres(route.summitAltitude)} and
-            helicopter evacuation is a condition of climbing with us. We check the policy before you
-            go up.
-          </p>
+      {/* Key numbers */}
+      <section className="border-b border-mist bg-frost px-6 py-10">
+        <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-5">
+          <div>
+            <p className="metric text-3xl">{route.successRate}%</p>
+            <p className="label mt-1 text-scree">Summit rate</p>
+            {!route.successVerified && (
+              <p className="mt-2 text-xs text-scree">Industry figure for this route</p>
+            )}
+          </div>
+          <div>
+            <p className="metric text-3xl">{route.summitAltitude.toLocaleString()} m</p>
+            <p className="label mt-1 text-scree">{route.summit}</p>
+          </div>
+          <div>
+            <p className="metric text-3xl">{totalGain.toLocaleString()} m</p>
+            <p className="label mt-1 text-scree">Total ascent</p>
+          </div>
+          <div>
+            <p className="metric text-3xl">{route.days}</p>
+            <p className="label mt-1 text-scree">Days on the mountain</p>
+          </div>
+          <div>
+            <p className="metric text-3xl">{route.scenery}/5</p>
+            <p className="label mt-1 text-scree">Scenery · {route.traffic.toLowerCase()}</p>
+          </div>
         </div>
-      </Section>
+      </section>
 
-      {mine.length > 0 && (
-        <Section tone="sand">
-          <SectionTitle
-            eyebrow="Or join a group"
-            title={`${mine.length} fixed date${mine.length === 1 ? "" : "s"} on the ${route.name} route`}
-            lead="Below the private-climb price. Each date carries a price we will honour and a seat count that goes down as people book."
-          />
-          <div className="mt-10">
-            {mine.map((d) => {
-              const p = dateParts(d.start);
-              const left = d.capacity - d.booked;
-              return (
-                <div key={d.id} className={`mb-3.5 grid items-center gap-6 rounded border border-line p-[22px] md:grid-cols-[150px_1fr_190px_170px] ${left ? "bg-white" : "bg-paper"}`}>
-                  <p className="text-xl font-bold leading-tight text-ink">
-                    {p.day} {p.month}<span className="block text-[13px] font-normal text-muted">{p.year}</span>
-                  </p>
-                  <p className="text-[15px] text-ink">
-                    {longDate(d.start)} to {longDate(d.end)}
-                    <span className="mt-0.5 block text-[13px] text-muted">{route.days} days, {route.difficulty}</span>
-                  </p>
-                  <SeatBarRow capacity={d.capacity} booked={d.booked} />
-                  <div>
-                    <p className={`metric text-2xl font-bold ${left ? "text-olive-deep" : "text-muted"}`}>
-                      {money(d.price)}<span className="block text-xs font-normal text-muted">per person</span>
-                    </p>
-                    <Link href={`/departures#${d.id}`}
-                      className={`mt-2 inline-block rounded-[3px] px-[22px] py-2.5 text-sm font-semibold transition-colors ${left ? "bg-brick-text text-white hover:bg-brick-dark" : "border border-olive-deep text-olive-deep"}`}>
-                      {left ? "Join this group" : "Waitlist"}
-                    </Link>
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-14 lg:grid-cols-[1.35fr_0.65fr] lg:gap-16">
+          <div>
+            <Contour className="mb-5" />
+            <h2 className="font-display text-3xl md:text-4xl">Day by day</h2>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-scree">
+              {route.character}
+            </p>
+
+            <ol className="mt-10 divide-y divide-mist border-y border-mist">
+              {route.itinerary.map((d) => {
+                const gainKey = d.zone === "moorland" ? "moor" : d.zone;
+                return (
+                  <li key={d.day} className="grid gap-4 py-6 sm:grid-cols-[auto_1fr] sm:gap-8">
+                    <div className="sm:w-28">
+                      <p className="metric text-2xl">D{d.day}</p>
+                      <p
+                        className="label mt-1"
+                        style={{ color: `var(--color-zone-${gainKey})` }}
+                      >
+                        {zones[d.zone].label}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-display text-xl tracking-tight">
+                        {d.from} → {d.to}
+                      </h3>
+                      <p className="metric mt-1.5 text-sm text-tanzanite">
+                        {d.altitude.toLocaleString()} m
+                        {d.high && d.high > d.altitude
+                          ? ` · high point ${d.high.toLocaleString()} m`
+                          : ""}{" "}
+                        · {d.distance} · {d.hours}
+                      </p>
+                      <p className="mt-2.5 text-sm leading-relaxed text-scree">{d.note}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <div className="mt-14 grid gap-10 sm:grid-cols-2">
+              <div>
+                <h2 className="font-display text-2xl">What is included</h2>
+                <ul className="mt-4 space-y-3">
+                  {climbIncluded.map((i) => (
+                    <li key={i.text} className="flex gap-3 text-sm leading-relaxed">
+                      <span className="mt-0.5 text-tanzanite" aria-hidden="true">
+                        +
+                      </span>
+                      <span>
+                        <span className="text-scree">{i.text}</span>
+                        {i.detail && (
+                          <span className="mt-0.5 block text-xs text-scree/75">
+                            {i.detail}
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 border-l-2 border-mist pl-4 text-xs leading-relaxed text-scree">
+                  The two hotel nights are at {site.baseHotel.name} in{" "}
+                  {site.baseHotel.town} or similar. {site.baseHotel.note}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-display text-2xl">What is not</h2>
+                <ul className="mt-4 space-y-3">
+                  {climbExcluded.map((i) => (
+                    <li key={i.text} className="flex gap-3 text-sm leading-relaxed">
+                      <span className="mt-0.5 text-scree/60" aria-hidden="true">
+                        −
+                      </span>
+                      <span>
+                        <span className="text-scree">{i.text}</span>
+                        {i.detail && (
+                          <span className="mt-0.5 block text-xs text-scree/75">
+                            {i.detail}
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <aside>
+            <div className="rounded-[10px] border border-mist bg-frost p-6 shadow-[0_10px_25px_0_rgba(74,85,104,0.10)]">
+              <h2 className="font-display text-xl">Price by group size</h2>
+              <dl className="mt-5 divide-y divide-mist">
+                {(liveRates ? liveRates.map((r) => ({ size: r.size, price: r.price ?? 0 })) : route.groupPricing).map((g) => (
+                  <div key={g.size} className="flex items-baseline justify-between gap-4 py-3">
+                    <dt className="text-sm">{g.size}</dt>
+                    <dd className="metric text-lg text-tanzanite">
+                      ${g.price.toLocaleString()}
+                    </dd>
                   </div>
+                ))}
+              </dl>
+              {live ? (
+                <p className="mt-4 text-xs leading-relaxed text-scree">
+                  This is the {live.duration?.replace(/\s*\|\s*/g, ", ")} package.{" "}
+                  <Link href={tourPath(live)} className="text-tanzanite underline underline-offset-4">
+                    Full itinerary, price table and inclusions
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <p className="mt-4 text-xs leading-relaxed text-scree">Per person, US dollars.</p>
+              )}
+
+              {route.published && !route.published.sameLength && (
+                <p className="mt-4 border-t border-mist pt-4 text-xs leading-relaxed text-scree">
+                  A shorter <strong>{route.published.hikingDays}-day</strong>{" "}
+                  version of this route is also sold, from{" "}
+                  <span className="metric text-tanzanite">
+                    ${route.published.from.toLocaleString()}
+                  </span>
+                  . It is cheaper because it skips a day of acclimatisation,
+                  and it summits less often. Ask us for it by name if you want
+                  it — we will not quietly sell it to you as this climb.
+                </p>
+              )}
+
+              <Link
+                href={`/plan?route=${route.slug}`}
+                className="mt-6 block rounded-full bg-brand px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-basalt transition-all hover:bg-brand-bright hover:shadow-[0_2px_20px_0_rgba(157,171,31,0.5)]"
+              >
+                Book this climb
+              </Link>
+              <p className="mt-3 text-xs leading-relaxed text-scree">
+                30% deposit to confirm. Balance due 45 days before you fly.
+              </p>
+            </div>
+
+            {routeDepartures.length > 0 && (
+              <div className="mt-8 rounded-[10px] border border-mist p-6">
+                <h2 className="font-display text-xl">Group departures</h2>
+                <p className="mt-2 text-sm leading-relaxed text-scree">
+                  Cheaper than a private climb, and you meet people.
+                </p>
+                <div className="mt-5 space-y-3">
+                  {routeDepartures.map((d) => (
+                    <Link
+                      key={d.start}
+                      href={`${d.href}?date=${d.start}#enquire`}
+                      className="flex items-baseline justify-between gap-3 rounded-lg px-1 py-1 hover:bg-frost"
+                    >
+                      <span className="metric text-sm">
+                        {new Date(`${d.start}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                      <span className="label text-scree">
+                        {d.seatsLeft !== null && d.seatsLeft <= 4 ? `${d.seatsLeft} left` : "Open"}
+                        {d.price ? <span className="metric ml-3 text-base text-tanzanite">${d.price.toLocaleString()}</span> : null}
+                      </span>
+                    </Link>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </Section>
-      )}
+                <Link
+                  href="/departures"
+                  className="mt-5 block rounded-full border border-mist bg-glacier px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-[0.12em] text-tanzanite shadow-[0_10px_25px_0_rgba(74,85,104,0.15)] transition-all hover:border-brand hover:bg-brand hover:text-basalt"
+                >
+                  Full calendar
+                </Link>
+              </div>
+            )}
 
-      {/* Crew */}
-      <Section tone="cream" id="crew">
-        <SectionTitle
-          eyebrow="Who takes you up"
-          title={`A crew of ${crewSize}+, and you can ask for one by name`}
-          lead="Guests name these guides in their own Tripadvisor reviews. On the live site not one of them appears anywhere, which means the reviews credit people the reader is never introduced to."
-        />
-        <div className="mt-10 grid grid-cols-2 justify-center gap-8 sm:grid-cols-3 lg:grid-cols-6">
-          {guides.slice(0, 6).map((g) => <GuideCard key={g.name} guide={g} />)}
+            <div className="mt-8">
+              <Photo imageKey={route.photoKey} ratio="4/5" tone="light" brief={route.photoBrief} sizes="(min-width: 1024px) 30vw, 100vw" />
+            </div>
+          </aside>
         </div>
-        <div className="mt-[50px] rounded border border-line bg-white p-[30px]">
-          <h3 className="mb-3 text-[19px]">Porter welfare and safety</h3>
-          <div className="grid gap-6 md:grid-cols-2">
-            <p className="text-[15px] leading-[1.75] text-muted">
-              Porters are paid above the KPAP wage floor, loads are weighed at the gate, and every
-              porter has proper boots and a sleeping bag rated for the camps they sleep in. This is
-              not a courtesy; underpaid and underequipped crew is how people get hurt on this mountain.
-            </p>
-            <p className="text-[15px] leading-[1.75] text-muted">
-              Every climb carries a pulse oximeter with twice-daily checks, a first-aid kit, bottled
-              oxygen, and a written evacuation plan for each camp on this route. Your guide has the
-              final say on whether you go higher.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      {others.length > 0 && (
-        <Section tone="sand">
-          <SectionTitle eyebrow="Not sure this is the one"
-            title={`The other ${others.length} route${others.length === 1 ? "" : "s"} on ${mountain}`} />
-          <div className="mt-10"><RouteTable routes={others} /></div>
-        </Section>
-      )}
-
-      {rel.length > 0 && <ReviewBand items={rel} title="From people who did it" />}
+      </div>
 
       <BookBar
-        name={`${route.name} Route — ${route.days} days, ${route.difficulty.toLowerCase()}`}
         price={route.price}
-        note="per person, from"
-        verified={route.priceVerified}
-        addId={`route-${route.slug}`}
-        extra={
-          <Link href="/departures"
-            className="rounded-[3px] border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20">
-            Group dates
-          </Link>
-        }
+        qualifier="per person, two climbers"
+        href={`/plan?route=${route.slug}`}
+        label="Book this climb"
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
     </>
   );

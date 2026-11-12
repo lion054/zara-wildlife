@@ -1,97 +1,79 @@
 import type { Metadata } from "next";
-import { safaris } from "@/lib/trips";
-import { parks, circuits, safariExperiences } from "@/lib/parks";
-import { reviews } from "@/lib/reviews";
-import { safariFaqs } from "@/lib/faqs";
-import { list } from "@/lib/format";
-import { Section, SectionTitle, PageHero, TripCard, Tile, Pill, Button, Eyebrow } from "@/components/primitives";
-import { ReviewBand, FaqList, faqJsonLd } from "@/components/blocks";
+import Link from "next/link";
+import { Faq } from "@/components/faq";
+import { PageIntro, daysOf, tourItems } from "@/components/listing";
+import { PhotoHero, Section } from "@/components/primitives";
+import { Collapse, FilterGrid } from "@/components/ui";
+import { content } from "@/lib/content";
+import { circuits, parks, safariExperiences } from "@/lib/parks";
+import { toursOfKind } from "@/lib/tours";
 
 export const metadata: Metadata = {
-  title: "Tanzania safaris — Serengeti, Ngorongoro, Tarangire, Manyara",
-  description:
-    "Three fully costed northern-circuit safari itineraries from $1,800, ten national parks across three circuits, and the experiences you can add to any of them.",
-  alternates: { canonical: "/safaris" },
+  title: "Safaris",
+  description: "Northern circuit safaris from Moshi and Arusha: Serengeti, Ngorongoro, Tarangire and Manyara, with day-by-day itineraries and prices.",
 };
 
 export default function SafarisPage() {
-  const rel = reviews.filter((r) => /safari|circuit|migration/i.test(r.trip ?? "")).slice(0, 3);
+  const items = tourItems(toursOfKind("safari"), (t) => [daysOf(t) <= 5 ? "short" : daysOf(t) <= 7 ? "week" : "long"]);
+
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(safariFaqs)) }} />
-      <PageHero eyebrow="Safaris" title="The Serengeti and the crater, from $1,800"
-        lead="Three itineraries, every one of them fully costed on this page. Open-roofed 4x4, a window seat each, and the same guide from the first park to the last."
-        photoKey="hero-safaris"
-        crumbs={[{ label: "Home", href: "/" }, { label: "Safari", href: "/safaris" }]} />
+      <PhotoHero imageKey="hero-safaris" height="min-h-[16rem] md:min-h-[21rem]">
+        <PageIntro eyebrow="Safaris" title="The northern circuit, day by day." />
+      </PhotoHero>
 
-      <Section tone="cream" id="safaris">
-        <SectionTitle eyebrow="Northern circuit" title="Three itineraries, all fully costed"
-          lead="Custom-built 4x4s with an open roof, a guide who knows the parks rather than the road to them, and camps that move with you rather than a base you drive out from every morning." />
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {safaris.map((s) => (
-            <TripCard key={s.slug} href={`/safaris/${s.slug}`} photoKey={s.photoKey} title={s.name}
-              excerpt={s.summary} price={s.price} cta="See the day by day"
-              meta={[`${s.days} days / ${s.nights} nights`, s.style, list(s.parks)]} />
-          ))}
-        </div>
+      <Section>
+        <FilterGrid
+          label="Filter safaris"
+          items={items}
+          initial={8}
+          filters={[
+            { label: "Up to 5 days", tag: "short" },
+            { label: "6–7 days", tag: "week" },
+            { label: "8+ days", tag: "long" },
+          ]}
+        />
       </Section>
 
-      <Section tone="sand" id="parks">
-        <SectionTitle eyebrow="Where you go" title="Ten parks across three circuits"
-          lead="Everything the northern circuit holds is drivable from Arusha. The southern and western parks are flown into, quieter, and worth it once you have done the north." />
-        {Object.entries(circuits).map(([key, c]) => {
-          const inCircuit = parks.filter((p) => p.circuit === key);
-          if (!inCircuit.length) return null;
-          return (
-            <div key={key} className="mt-12">
-              <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <h3 className="mb-1.5 text-[26px]">{c.label}</h3>
-                  <p className="text-base text-muted">{c.note}</p>
-                </div>
-                <Pill>{c.access}</Pill>
-              </div>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {inCircuit.map((p) => (
-                  <Tile key={p.name} photoKey={p.photoKey} name={p.name.replace(" National Park", "")} note={p.headline} />
+      <Section tone="frost" id="parks">
+        <div className="mx-auto max-w-4xl space-y-3">
+          {(Object.keys(circuits) as (keyof typeof circuits)[]).map((key, i) => (
+            <Collapse key={key} defaultOpen={i === 0} title={circuits[key].label} meta={circuits[key].access}>
+              <p className="mb-5 text-sm text-scree">{circuits[key].note}</p>
+              <ul className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+                {parks.filter((p) => p.circuit === key).map((p) => (
+                  <li key={p.name}>
+                    <p className="font-display text-lg">{p.name}</p>
+                    <p className="label text-tanzanite">{p.headline}</p>
+                    <p className="mt-1 text-sm text-scree">{p.note}</p>
+                    {p.when && <p className="metric mt-1 text-xs text-scree">Best: {p.when}</p>}
+                  </li>
                 ))}
-              </div>
-            </div>
-          );
-        })}
-        <p className="mt-12 text-center"><Button href="/destinations" variant="ghost">Read about each park and when to visit</Button></p>
-      </Section>
-
-      <Section tone="cream" id="experiences">
-        <SectionTitle eyebrow="Experiences" title="Things you can add to any safari"
-          lead="Booked with the itinerary rather than sold at the gate, because most of these need a permit or a dawn start." />
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {safariExperiences.map((e) => (
-            <div key={e.name} className="rounded border border-line bg-white p-[26px]">
-              <h3 className="mb-1.5 text-xl">{e.name}</h3>
-              <p className="mb-2.5 text-[13px] font-semibold text-olive-deep">{e.where}</p>
-              <p className="text-[15px] leading-[1.75] text-muted">{e.note}</p>
-            </div>
+              </ul>
+            </Collapse>
           ))}
-        </div>
-      </Section>
 
-      <Section tone="sand" id="faqs">
-        <div className="grid gap-12 lg:grid-cols-[5fr_7fr]">
-          <div>
-            <Eyebrow>Before you book</Eyebrow>
-            <h2 className="text-[33px] leading-[1.22]">Tanzania safaris, answered</h2>
-            <p className="prose-lead mt-3.5">
-              The questions the Moshi office actually gets, answered from the same data the
-              itineraries are priced from.
-            </p>
-            <div className="mt-6"><Button href="/contact" variant="ghost">Ask us something else</Button></div>
+          <div id="experiences" className="scroll-mt-28">
+            <Collapse title="Things to add" meta="Balloon flights, walking safaris, birding">
+              <ul className="space-y-4">
+                {safariExperiences.map((e) => (
+                  <li key={e.name}>
+                    <p className="font-display text-lg">{e.name} <span className="label ml-2 text-scree">{e.where}</span></p>
+                    <p className="text-sm text-scree">{e.note}</p>
+                  </li>
+                ))}
+              </ul>
+            </Collapse>
           </div>
-          <FaqList items={safariFaqs} />
+
+          <Collapse title="Safari questions" meta="Parks, seasons and how it works">
+            <Faq items={content.faqs.destinations.map((q) => ({ q: q.q, a: q.a }))} />
+            <p className="mt-5 text-sm text-scree">
+              More in the <Link href="/faqs/safari" className="text-tanzanite underline underline-offset-4">safari FAQ</Link>.
+            </p>
+          </Collapse>
         </div>
       </Section>
-
-      <ReviewBand items={rel} title="From people who went" />
     </>
   );
 }

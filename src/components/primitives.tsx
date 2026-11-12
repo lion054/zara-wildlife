@@ -1,431 +1,365 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { photo } from "@/lib/photos";
-import { money } from "@/lib/format";
-
-/**
- * The shared vocabulary.
- *
- * Server components throughout — none of these need state, so none of them
- * ship JavaScript. Only the planner, the profile chart, the forms and the
- * basket badge are client components, which is what keeps the bundle to
- * roughly the weight of the static build it replaces.
- */
-
-/* ------------------------------------------------------------------ *
- * Sections and headings
- * ------------------------------------------------------------------ */
-
-export function Section({
-  children,
-  tone = "cream",
-  id,
-  className = "",
-}: {
-  children: ReactNode;
-  tone?: "cream" | "white" | "sand" | "ink";
-  id?: string;
-  className?: string;
-}) {
-  const bg = {
-    cream: "bg-cream",
-    white: "bg-white",
-    sand: "bg-sand",
-    ink: "bg-ink text-white/80",
-  }[tone];
-  return (
-    /* `scroll-mt` is the header height. Without it every in-page anchor —
-       `#departures`, `#reviews`, `#kilimanjaro` — parks its own heading behind
-       the fixed chrome and the reader lands on the second paragraph. */
-    <section id={id} className={`${bg} scroll-mt-[104px] px-5 py-16 md:py-[78px] ${className}`}>
-      <div className="mx-auto max-w-[1170px]">{children}</div>
-    </section>
-  );
-}
 
 export function Eyebrow({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" }) {
   return (
-    <span className={`label mb-3.5 block ${tone === "light" ? "text-lime" : "text-olive-deep"}`}>
+    <p className={`label mb-4 ${tone === "light" ? "text-sunrise" : "text-tanzanite"}`}>
       {children}
-    </span>
+    </p>
   );
 }
 
-/**
- * The section head. Centred heading over a centred lead and a hairline rule —
- * the device that separates one band of the page from the next.
- */
-export function SectionTitle({
-  eyebrow,
-  title,
-  lead,
-  align = "center",
-  tone = "dark",
+export function Contour({ className = "" }: { className?: string }) {
+  return <div className={`contour ${className}`} aria-hidden="true" />;
+}
+
+export function Section({
+  children,
+  tone = "glacier",
+  id,
+  className = "",
+  bgKey,
 }: {
-  eyebrow?: string;
-  title: string;
-  lead?: string;
-  align?: "center" | "left";
-  tone?: "dark" | "light";
+  children: ReactNode;
+  tone?: "glacier" | "frost" | "basalt";
+  id?: string;
+  /** Photo key shown behind a dark panel, under a heavy shade. */
+  bgKey?: string;
+  className?: string;
 }) {
-  const centred = align === "center";
+  const tones = {
+    glacier: "bg-glacier text-scree",
+    frost: "bg-frost text-scree",
+    basalt: "on-dark bg-basalt text-glacier",
+  };
+  /* The dark band is an inset rounded panel floating on white, not a
+     full-bleed slab — the modern "bento" treatment, and it keeps the torn
+     edge above it meeting white. */
+  const bgImg = bgKey ? photo(bgKey) : undefined;
+  if (tone === "basalt") {
+    return (
+      <section id={id} className="bg-glacier px-3 py-4 md:px-6 md:py-8">
+        <div
+          className={`${tones.basalt} relative mx-auto max-w-[88rem] overflow-hidden rounded-[2rem] px-6 py-16 md:rounded-[2.5rem] md:px-14 md:py-24 ${className}`}
+        >
+          {bgImg ? (
+            <>
+              <Image
+                src={bgImg.src}
+                alt=""
+                fill
+                sizes="100vw"
+                className="pointer-events-none object-cover object-[50%_30%]"
+              />
+              {/* Shade: dark enough that text never fights the mountain, with
+                  a warm amber wash from the corner so it is not just black. */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-r from-basalt/95 via-basalt/70 to-basalt/40"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-basalt/90 via-basalt/20 to-basalt/50"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand/20 blur-3xl"
+              />
+            </>
+          ) : (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand/15 blur-3xl"
+            />
+          )}
+          <div className="relative mx-auto max-w-6xl">{children}</div>
+        </div>
+      </section>
+    );
+  }
   return (
-    <div className={centred ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
-      {eyebrow && <Eyebrow tone={tone}>{eyebrow}</Eyebrow>}
-      <h2 className={`text-[33px] leading-[1.22] md:text-[33px] ${tone === "light" ? "text-white" : ""}`}>
-        {title}
-      </h2>
-      {lead && (
-        <p className={`mt-4 text-base leading-[1.75] ${tone === "light" ? "text-white/70" : "text-muted"}`}>
-          {lead}
-        </p>
-      )}
-      <span aria-hidden className={`mt-5 inline-block h-0.5 w-10 bg-lime ${centred ? "" : "block"}`} />
-    </div>
+    <section id={id} className={`${tones[tone]} px-6 py-16 md:py-24 ${className}`}>
+      <div className="mx-auto max-w-6xl">{children}</div>
+    </section>
   );
 }
-
-/* ------------------------------------------------------------------ *
- * Buttons
- * ------------------------------------------------------------------ */
-
-const btnBase =
-  "inline-block rounded-[3px] text-sm font-semibold tracking-[0.2px]";
 
 export function Button({
   href,
   children,
   variant = "primary",
   className = "",
-  external = false,
-}: {
-  href: string;
-  children: ReactNode;
-  variant?: "primary" | "ghost" | "light";
-  className?: string;
-  external?: boolean;
-}) {
-  const styles = {
-    primary: "bg-brick-text px-7 py-3.5 text-white hover:bg-brick-dark",
-    ghost:
-      "border border-olive-deep px-6 py-3 text-olive-deep hover:bg-olive-deep hover:text-white",
-    light: "bg-white px-7 py-3.5 text-ink hover:bg-sand",
-  }[variant];
-  const cls = `${btnBase} ${styles} ${className}`;
-  if (external) {
-    return (
-      <a href={href} className={cls} target="_blank" rel="noopener">
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link href={href as never} className={cls}>
-      {children}
-    </Link>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Provenance markers
- * ------------------------------------------------------------------ */
-
-/**
- * Rendered wherever the dataset flags a figure it could not verify against the
- * operator's own records. Deliberately visible rather than a tooltip: the point
- * is that somebody in Moshi sees it and supplies the real number.
- */
-export function Unverified({ children }: { children: ReactNode }) {
-  return (
-    <span
-      title="This figure has not been confirmed against the operator's own records"
-      className="inline-flex items-center gap-1.5 rounded-full bg-[#f4ecd2] px-2.5 py-1 align-middle text-[11.5px] font-medium leading-none text-[#7a5a12]"
-    >
-      {/* A gold dot, not a warning triangle.
-          This marker appears seventeen times, several of them directly under a
-          price in a route card. Set in uppercase with wide tracking behind a ⚠
-          it read as an error state — the loudest thing on the card was the
-          disclaimer rather than the number it qualifies. It still has to be
-          seen, so it keeps its own colour and a tinted ground; what it gives
-          up is the shouting. */}
-      <span aria-hidden className="size-[5px] shrink-0 rounded-full bg-[#c79a3e]" />
-      {children}
-    </span>
-  );
-}
-
-/**
- * A fixed-height cropped photograph, or an honest stand-in when there is none.
- * An empty box on a page selling something reads as a broken site; a panel that
- * names the missing shot reads as a company that knows what it is short of —
- * and tells the office exactly what to send.
- */
-export function Photo({
-  photoKey,
-  alt,
-  subject,
-  className = "",
-  sizes = "(max-width: 768px) 100vw, 50vw",
-  priority = false,
-}: {
-  photoKey?: string;
-  alt?: string;
-  subject?: string;
-  className?: string;
-  sizes?: string;
-  priority?: boolean;
-}) {
-  const p = photoKey ? photo(photoKey) : undefined;
-  if (!p) {
-    return (
-      <div className={`flex items-center justify-center bg-paper px-5 text-center ${className}`}>
-        <span className="text-[13px] leading-relaxed text-muted">
-          <Unverified>Photograph needed</Unverified>
-          <span className="mt-2 block">
-            {subject ? `A shot of ${subject}.` : "No image on file for this."} Nothing invented in
-            its place.
-          </span>
-        </span>
-      </div>
-    );
-  }
-  return (
-    <div className={`relative overflow-hidden ${className}`}>
-      <Image
-        src={p.src}
-        alt={alt ?? p.alt}
-        fill
-        sizes={sizes}
-        priority={priority}
-        className="object-cover"
-      />
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Trip card
- * ------------------------------------------------------------------ */
-
-export function TripCard({
-  href,
-  photoKey,
-  title,
-  excerpt,
-  meta = [],
-  price,
-  priceNote = "From",
-  priceVerified = true,
-  tag,
-  cta = "See dates and prices",
-  badges = [],
-  children,
-}: {
-  href: string;
-  photoKey?: string;
-  title: string;
-  excerpt: string;
-  meta?: string[];
-  price?: number | null;
-  priceNote?: string;
-  priceVerified?: boolean;
-  tag?: string;
-  cta?: string;
-  badges?: { kind: "odds" | "value"; label: string; title: string }[];
-  children?: ReactNode;
-}) {
-  return (
-    <article className="group overflow-hidden rounded">
-      <Link href={href as never} aria-hidden tabIndex={-1} className="block">
-        <Photo photoKey={photoKey} alt="" className="h-[230px]" sizes="(max-width:768px) 100vw, 33vw" />
-      </Link>
-      <div className="rounded-b border border-t-0 border-line bg-white px-6 pb-[22px] pt-[26px]">
-        {tag && <span className="label mb-2 block text-olive-deep">{tag}</span>}
-        <h3 className="text-[19px] leading-[1.35]">
-          <Link href={href as never} className="transition-colors hover:text-olive-deep">
-            {title}
-          </Link>
-        </h3>
-
-        {badges.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {badges.map((b) => (
-              <Badge key={b.kind} {...b} />
-            ))}
-          </div>
-        )}
-
-        {meta.length > 0 && (
-          <ul className="mt-3 flex flex-wrap gap-x-3.5 gap-y-1.5 text-[13px] text-muted">
-            {meta.map((m) => (
-              <li key={m} className="flex items-center gap-1.5 before:block before:size-[5px] before:shrink-0 before:rounded-full before:bg-lime">
-                {m}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {children}
-
-        <p className="py-3 text-[15px] leading-[1.7] text-muted">{excerpt}</p>
-
-        <div className="flex items-center justify-between gap-3">
-          <Link href={href as never} className="text-sm font-semibold text-olive-deep underline-offset-4 hover:underline">
-            {cta}
-          </Link>
-          {price != null && (
-            <p className="text-right text-sm text-muted">
-              {priceNote} <strong className="metric block text-xl text-olive-deep">{money(price)}</strong>
-            </p>
-          )}
-        </div>
-
-        {price != null && !priceVerified && (
-          <div className="mt-2.5">
-            <Unverified>Rate sheet to confirm</Unverified>
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
-
-export function Badge({ kind, label, title }: { kind: "odds" | "value"; label: string; title: string }) {
-  const cls =
-    kind === "odds"
-      ? "bg-olive-deep text-white"
-      : "border border-line bg-paper text-slate";
-  return (
-    <span title={title} className={`inline-block rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls}`}>
-      {label}
-    </span>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Pills, tiles and seat bars
- * ------------------------------------------------------------------ */
-
-export function Pill({ children, tone = "plain" }: { children: ReactNode; tone?: "plain" | "moderate" | "challenging" | "hard" }) {
-  const cls = {
-    plain: "border-line bg-paper text-slate",
-    moderate: "border-[#d6dcb8] bg-[#eef0e2] text-olive-deep",
-    challenging: "border-[#e6d3ae] bg-[#f7ecd8] text-[#7a5a12]",
-    hard: "border-[#e2c6c3] bg-[#f4e4e2] text-brick-dark",
-  }[tone];
-  return (
-    <span className={`inline-block whitespace-nowrap rounded-sm border px-2.5 py-1 text-xs font-medium ${cls}`}>
-      {children}
-    </span>
-  );
-}
-
-export const difficultyTone = (d: string) =>
-  d.toLowerCase() as "moderate" | "challenging" | "hard";
-
-export function Tile({
-  href,
-  photoKey,
-  name,
-  note,
+  type,
 }: {
   href?: string;
-  photoKey?: string;
-  name: string;
-  note?: string;
+  children: ReactNode;
+  variant?: "primary" | "outline" | "light";
+  className?: string;
+  type?: "button" | "submit";
 }) {
-  const inner = (
-    <>
-      <Photo photoKey={photoKey} alt="" className="absolute inset-0 h-full w-full" sizes="(max-width:768px) 50vw, 25vw" />
-      <span className="absolute inset-0 flex flex-col justify-end bg-gradient-to-b from-transparent to-ink/80 p-5 text-white">
-        <strong className="text-[19px] leading-tight">{name}</strong>
-        {note && <span className="mt-1 text-[13px] text-white/75">{note}</span>}
-      </span>
-    </>
+  /* Kiwano's button is a pill: full radius, uppercase, and on hover it lifts
+     a coloured glow rather than changing fill. The fill is the logo lime, so
+     the label on top is navy — white on this green measures 2.54:1. */
+  const variants = {
+    primary:
+      "bg-brand text-basalt hover:bg-brand-bright hover:shadow-[0_8px_28px_-6px_rgba(240,159,15,0.65)]",
+    outline:
+      "border border-tanzanite/25 bg-glacier text-tanzanite hover:border-tanzanite hover:bg-tanzanite hover:text-glacier",
+    light:
+      "border border-glacier/50 text-glacier hover:border-glacier hover:bg-glacier hover:text-basalt",
+  };
+  const classes = `inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-200 ${variants[variant]} ${className}`;
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <button type={type ?? "button"} className={classes}>
+      {children}
+    </button>
   );
-  const cls =
-    "group relative block h-[260px] overflow-hidden rounded [&_img]:transition-transform [&_img]:duration-500 hover:[&_img]:scale-[1.07]";
-  return href ? (
-    <Link href={href as never} className={cls}>
-      {inner}
-    </Link>
-  ) : (
-    <div className={cls}>{inner}</div>
+}
+
+/** Statistic in mono, with its unit. Altitudes, days, distances, rates. */
+export function Metric({
+  value,
+  unit,
+  label,
+  tone = "dark",
+}: {
+  value: string | number;
+  unit?: string;
+  label: string;
+  tone?: "dark" | "light";
+}) {
+  return (
+    <div>
+      <p className="metric text-3xl font-medium tracking-tight">
+        {typeof value === "number" ? value.toLocaleString() : value}
+        {unit && (
+          <span className="ml-1 text-base opacity-60">{unit}</span>
+        )}
+      </p>
+      <p className={`label mt-1 ${tone === "light" ? "text-glacier/55" : "text-scree"}`}>
+        {label}
+      </p>
+    </div>
+  );
+}
+
+/** Figures the operator has not confirmed are marked, not quietly published. */
+export function Unverified({ what }: { what: string }) {
+  /* Brand orange, with navy on top — white would measure 2.49:1 here. */
+  return (
+    <span className="label inline-block rounded-full bg-sunrise px-3 py-1 text-basalt">
+      {what} to confirm
+    </span>
   );
 }
 
 /**
- * Seat availability.
+ * A real photograph, keyed off the manifest in lib/photos.
  *
- * The live site's calendar shows a flat $2,000 on nearly every date across two
- * years and its "Join Group" button joins nothing. Three states here, because
- * "9 of 12 booked" and "sold out" are different decisions — and the bar is
- * `role="img"` with a text label, since a progress bar that exists only
- * visually tells a screen reader nothing.
+ * Falls back to the photo-brief placeholder when a key has no image yet, so a
+ * page can be built before its picture exists and it is obvious which ones are
+ * still missing rather than silently blank.
  */
-export function SeatBar({ capacity, booked }: { capacity: number; booked: number }) {
-  const left = Math.max(0, capacity - booked);
-  const pct = Math.min(100, Math.round((booked / capacity) * 100));
-  const label = left === 0 ? "Sold out" : `${left} of ${capacity} ${left === 1 ? "seat" : "seats"} left`;
-  const fill = left === 0 ? "bg-brick-dark" : left <= 3 ? "bg-alert" : "bg-lime";
-  const text = left === 0 ? "text-brick-dark" : left <= 3 ? "text-alert" : "text-slate";
+export function Photo({
+  imageKey,
+  brief,
+  ratio = "4/3",
+  tone = "dark",
+  priority = false,
+  sizes = "(min-width: 1024px) 50vw, 100vw",
+  className = "",
+}: {
+  imageKey?: string;
+  /** Shown only if the image is missing. */
+  brief: string;
+  ratio?: string;
+  tone?: "dark" | "light";
+  /** Set on the one image above the fold — it becomes the LCP element. */
+  priority?: boolean;
+  sizes?: string;
+  className?: string;
+}) {
+  const img = imageKey ? photo(imageKey) : undefined;
+
+  if (!img) return <ImageSlot brief={brief} ratio={ratio} tone={tone} />;
+
   return (
-    <div>
-      <div role="img" aria-label={label} className="my-2.5 h-2 overflow-hidden rounded-lg bg-line">
-        <span className={`block h-full rounded-lg ${fill}`} style={{ width: `${pct}%` }} />
+    <figure
+      className={`media-tile bg-frost ${className}`}
+      style={{ aspectRatio: ratio }}
+    >
+      <Image
+        src={img.src}
+        alt={img.alt}
+        width={img.width}
+        height={img.height}
+        sizes={sizes}
+        priority={priority}
+        className="media-tile-img h-full w-full object-cover"
+      />
+    </figure>
+  );
+}
+
+/**
+ * Page hero, to Kiwano's pattern.
+ *
+ * Theirs is a full-bleed photograph roughly 500px tall, torn along BOTH
+ * edges, with the display heading centred over it and a single pill CTA
+ * centred beneath. Content is centred by default because that is what makes
+ * their pages read as posters rather than as documents — pass align="left"
+ * only where a page genuinely needs the older editorial treatment.
+ */
+export function PhotoHero({
+  imageKey,
+  children,
+  height = "min-h-[24rem] md:min-h-[31rem]",
+  align = "center",
+}: {
+  imageKey: string;
+  children: ReactNode;
+  height?: string;
+  align?: "center" | "left";
+}) {
+  const img = photo(imageKey);
+  const centred = align === "center";
+
+  return (
+    <section
+      className={`relative isolate flex items-center justify-center overflow-hidden bg-basalt ${height}`}
+    >
+      {img && (
+        <Image
+          src={img.src}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="-z-20 object-cover"
+        />
+      )}
+
+      {/* One even wash. Kiwano uses a flat rgba(0,0,0,.3); this is a little
+          deeper because Bjorn is a light-weight face and needs the help. */}
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-basalt/55" />
+      {/* A second, softer pass concentrated behind the type. Some of these
+          photographs have signage or bright snow in them, and a flat wash
+          alone leaves the headline fighting the picture. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(20,19,12,0.55)_0%,rgba(20,19,12,0)_70%)]"
+      />
+
+      {/* Only the bottom edge. The header hangs its own torn strip down over
+          the top of this photograph, so a second one here would double up. */}
+      <div className="torn torn-bottom" aria-hidden="true" />
+
+      {/* Pages still author their copy for a light field, so the dark-field
+          remaps live here rather than in every page. */}
+      <div
+        className={`on-dark relative w-full px-6 py-16 md:py-20 [&_.text-scree]:text-glacier/85 [&_.text-tanzanite]:text-brand ${
+          centred ? "text-center" : ""
+        }`}
+      >
+        <div
+          className={`mx-auto max-w-6xl ${
+            centred ? "[&>*]:mx-auto [&_h1]:mx-auto [&_.flex]:justify-center" : ""
+          }`}
+        >
+          {children}
+        </div>
       </div>
-      <p className={`text-[13px] font-semibold ${text}`}>{label}</p>
+    </section>
+  );
+}
+
+export function ImageSlot({
+  brief,
+  ratio = "4/3",
+  tone = "dark",
+}: {
+  brief: string;
+  ratio?: string;
+  tone?: "dark" | "light";
+}) {
+  return (
+    <figure
+      className={`media-tile flex items-end ${
+        tone === "dark" ? "bg-basalt-soft text-glacier" : "bg-frost text-basalt"
+      }`}
+      style={{ aspectRatio: ratio }}
+    >
+      <div
+        aria-hidden="true"
+        className="media-tile-img absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(160deg, currentColor 0 1px, transparent 1px 18px)",
+        }}
+      />
+      <figcaption
+        className={`relative z-10 m-4 rounded-lg border-l-2 border-tanzanite px-3 py-2 text-[11px] leading-relaxed ${
+          tone === "dark" ? "bg-basalt/80" : "bg-glacier/90"
+        }`}
+      >
+        <span className="label block text-tanzanite">Photo brief</span>
+        {brief}
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Seats remaining, drawn honestly — including sold out. */
+export function SeatBar({ capacity, booked }: { capacity: number; booked: number }) {
+  const left = capacity - booked;
+  const pct = Math.round((booked / capacity) * 100);
+  return (
+    <div className="w-full">
+      <div className="mb-1.5 flex items-baseline justify-between gap-3">
+        <span className="label text-scree">
+          {left === 0 ? "Sold out" : `${left} of ${capacity} seats left`}
+        </span>
+        <span className="metric text-xs text-scree">{pct}%</span>
+      </div>
+      <div
+        className="h-1.5 w-full overflow-hidden rounded-full bg-mist"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={left === 0 ? "Sold out" : `${left} of ${capacity} seats left`}
+        aria-label="Seats booked"
+      >
+        {/* Urgency reads off the warm colour: brand orange when seats are
+            nearly gone, brand green while there is room, grey once it is shut.
+            Green-for-available is the reading the logo already trains. */}
+        <div
+          className={`h-full rounded-full ${left === 0 ? "bg-scree" : left <= 3 ? "bg-sunrise" : "bg-brand"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Page hero and breadcrumbs
- * ------------------------------------------------------------------ */
-
-export function PageHero({
-  eyebrow,
-  title,
-  lead,
-  photoKey,
-  crumbs = [],
-}: {
-  eyebrow?: string;
-  title: string;
-  lead?: string;
-  photoKey?: string;
-  crumbs?: { label: string; href: string }[];
-}) {
-  const p = photoKey ? photo(photoKey) : undefined;
+export function Stars({ rating, count }: { rating: number; count: number }) {
   return (
-    <div className="relative flex min-h-[380px] items-center">
-      {p && (
-        <Image src={p.src} alt="" fill priority sizes="100vw" className="object-cover" />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-b from-ink/55 to-ink/80" />
-      <div className="relative z-10 mx-auto w-full max-w-[1170px] px-5 pb-14 pt-[140px]">
-        {crumbs.length > 0 && (
-          <nav aria-label="Breadcrumb" className="mb-4 text-[13px] text-white/70">
-            {crumbs.map((c, i) =>
-              i === crumbs.length - 1 ? (
-                <span key={c.href} aria-current="page">{c.label}</span>
-              ) : (
-                <span key={c.href}>
-                  <Link href={c.href as never} className="hover:text-white">{c.label}</Link>
-                  {/* Margins rather than literal spaces — JSX collapses the
-                      trailing one against the next element and the crumbs run
-                      together as "Home ›Climb". */}
-                  <span aria-hidden className="mx-1.5">›</span>
-                </span>
-              ),
-            )}
-          </nav>
-        )}
-        {eyebrow && <Eyebrow tone="light">{eyebrow}</Eyebrow>}
-        <h1 className="text-[29px] leading-[1.15] text-white md:text-[40px]">{title}</h1>
-        {lead && <p className="mt-3.5 max-w-[660px] text-base leading-[1.65] text-white/85 md:text-[17px]">{lead}</p>}
-      </div>
-    </div>
+    <span className="inline-flex items-center gap-2">
+      <span className="text-sunrise-ink" aria-hidden="true">
+        {"★".repeat(rating)}
+      </span>
+      <span className="metric text-xs">
+        {count} reviews on TripAdvisor
+      </span>
+    </span>
   );
 }
