@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, IBM_Plex_Mono, Karla } from "next/font/google";
 import { CookieBanner } from "@/components/cookie-banner";
+import { Zita } from "@/components/zita";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { getPosts } from "@/lib/posts";
 import { displayTitle, getTour, tourPath, type TourKind } from "@/lib/tours";
@@ -112,6 +113,7 @@ export default async function RootLayout({
         <main id="main">{children}</main>
         <SiteFooter hasBlog={hasBlog} />
         <CookieBanner />
+        <Zita />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

@@ -219,7 +219,8 @@ for (const t of list) {
     oldSlug: old?.oldSlug ?? t.slug,
     title: t.title.replace(/\s+/g, " ").trim(),
     metaDescription: t.short_desc ?? null,
-    duration: t.duration ? `${t.duration} Days${nights}` : null,
+    /* A day trip's length is in hours (the planner schedules by it); a multi-day trip's is in days. */
+    duration: !t.duration ? null : kind === "daytrip" ? (Number(t.duration) >= 7 ? "Full day" : `${t.duration} hours`) : `${t.duration} Days${nights}`,
     places: (t.address ?? "").split(",").map((s) => s.trim()).filter(Boolean),
     from: rows.length ? Math.min(...rows.map((r) => r.price)) : Number(t.price) > 0 ? Math.round(Number(t.price)) : null,
     overview,
