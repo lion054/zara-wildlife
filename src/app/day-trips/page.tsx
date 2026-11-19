@@ -25,7 +25,7 @@ export default function DayTripsPage() {
       <Section tone="frost">
         <div className="mx-auto max-w-4xl">
           <Collapse title="Day trip questions" meta="What is offered and how it works">
-            <Faq items={content.faqs.daytrips} />
+            <Faq flush items={content.faqs.daytrips} />
           </Collapse>
         </div>
       </Section>

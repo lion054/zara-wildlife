@@ -216,8 +216,8 @@ export async function TourPage({ tour }: { tour: Tour }) {
       </p>
       {tour.accommodation.slice(0, 3).map(place)}
       {tour.accommodation.length > 3 && (
-        <details className="group">
-          <summary className="mx-auto w-fit cursor-pointer list-none rounded-full border border-tanzanite/25 bg-glacier px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.12em] text-tanzanite hover:bg-tanzanite hover:text-glacier group-open:hidden [&::-webkit-details-marker]:hidden">
+        <details className="group/more">
+          <summary className="mx-auto w-fit cursor-pointer list-none rounded-full border border-tanzanite/25 bg-glacier px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.12em] text-tanzanite hover:bg-tanzanite hover:text-glacier group-open/more:hidden [&::-webkit-details-marker]:hidden">
             See more ({tour.accommodation.length - 3})
           </summary>
           <div className="space-y-4">{tour.accommodation.slice(3).map((a, i) => place(a, i + 3))}</div>
@@ -363,7 +363,7 @@ export async function TourPage({ tour }: { tour: Tour }) {
                 tourKey={`${tour.kind}:${tour.key}`}
                 title={tour.title}
                 fixedDate={Boolean(tour.fixedDate)}
-                departures={departures.map((d) => ({ start: d.start, seatsLeft: d.seatsLeft, open: d.open, price: d.price }))}
+                departures={departures.map((d) => ({ start: d.start, end: d.end, seatsLeft: d.seatsLeft, open: d.open, price: d.price }))}
                 ladder={tour.ladder}
               />
             ) : (

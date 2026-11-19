@@ -60,7 +60,7 @@ export default function ZanzibarPage() {
           </Collapse>
           {sections.map((sec) => (
             <Collapse key={sec} title={sec ?? "Zanzibar"} meta="Questions and answers">
-              <Faq items={content.faqs.zanzibar.filter((q) => q.section === sec)} />
+              <Faq flush items={content.faqs.zanzibar.filter((q) => q.section === sec)} />
             </Collapse>
           ))}
         </div>

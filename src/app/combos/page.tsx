@@ -26,7 +26,7 @@ export default function CombosPage() {
       <Section tone="frost" id="faq">
         <div className="mx-auto max-w-4xl">
           <Collapse title="Combo questions" meta="What is included and how it fits together" defaultOpen>
-            <Faq items={[...content.faqs.combo, ...comboNotes.map((n) => ({ q: n.q, a: n.a }))]} />
+            <Faq flush items={[...content.faqs.combo, ...comboNotes.map((n) => ({ q: n.q, a: n.a }))]} />
           </Collapse>
         </div>
       </Section>

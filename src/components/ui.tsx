@@ -109,7 +109,7 @@ export function Collapse({
   return (
     <details
       open={defaultOpen}
-      className={`group rounded-2xl bg-glacier ring-1 ring-mist transition-shadow open:shadow-[0_18px_40px_-24px_rgba(43,44,16,0.35)] ${className}`}
+      className={`group/collapse rounded-2xl bg-glacier ring-1 ring-mist transition-shadow open:shadow-[0_18px_40px_-24px_rgba(43,44,16,0.35)] ${className}`}
     >
       <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:hidden md:px-6 [&::-webkit-details-marker]:hidden">
         {badge}
@@ -119,7 +119,7 @@ export function Collapse({
         </span>
         <span
           aria-hidden="true"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-frost text-tanzanite transition-transform group-open:rotate-45"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-frost text-tanzanite transition-transform group-open/collapse:rotate-45"
         >
           +
         </span>

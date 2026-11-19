@@ -90,11 +90,11 @@ export default function KilimanjaroPage() {
           </Collapse>
 
           <Collapse title="Climbing Kilimanjaro: FAQs" meta="Seasons, fitness, altitude, tipping">
-            <Faq items={content.faqs.kili} />
+            <Faq flush items={content.faqs.kili} />
           </Collapse>
 
           <Collapse title="Mount Meru: FAQs" meta="The best warm-up">
-            <Faq items={content.faqs.meru} />
+            <Faq flush items={content.faqs.meru} />
           </Collapse>
         </div>
       </Section>

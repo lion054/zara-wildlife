@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DepartureCalendar } from "@/components/departure-calendar";
 import { DepartureCard } from "@/components/departure-card";
 import { PageIntro, tourItems } from "@/components/listing";
 import { PhotoHero, Section } from "@/components/primitives";
@@ -29,13 +30,22 @@ export default async function DeparturesPage() {
 
       <Section>
         {list.length > 0 ? (
-          <ol className="grid gap-5 md:grid-cols-2 lg:grid-cols-3" aria-label="Upcoming group departures">
-            {list.map((d) => (
-              <li key={`${d.tourId}-${d.start}`}>
-                <DepartureCard d={d} />
-              </li>
-            ))}
-          </ol>
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+            <aside className="lg:sticky lg:top-28">
+              <h2 className="mb-3 font-display text-xl">Departure calendar</h2>
+              <DepartureCalendar
+                mode="browse"
+                departures={list.map((d) => ({ start: d.start, end: d.end, seatsLeft: d.seatsLeft, open: d.open, price: d.price, title: d.title, href: d.href }))}
+              />
+            </aside>
+            <ol className="grid gap-5 md:grid-cols-2" aria-label="Upcoming group departures">
+              {list.map((d) => (
+                <li key={`${d.tourId}-${d.start}`}>
+                  <DepartureCard d={d} />
+                </li>
+              ))}
+            </ol>
+          </div>
         ) : (
           <div className="mx-auto max-w-xl rounded-3xl bg-frost p-8 text-center">
             <h2 className="font-display text-2xl">New dates are being added.</h2>

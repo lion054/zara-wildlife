@@ -365,7 +365,7 @@ export function SiteFooter({ hasBlog = false }: { hasBlog?: boolean }) {
 
   /* A few links up front, the rest behind "See more". */
   const seeMore =
-    "mt-3 inline-block cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.12em] text-brand group-open:hidden [&::-webkit-details-marker]:hidden";
+    "mt-3 inline-block cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.12em] text-brand group-open/more:hidden [&::-webkit-details-marker]:hidden";
   const list = (items: string[][], keep: number) => (
     <>
       <ul className="space-y-2">
@@ -374,7 +374,7 @@ export function SiteFooter({ hasBlog = false }: { hasBlog?: boolean }) {
         ))}
       </ul>
       {items.length > keep && (
-        <details className="group">
+        <details className="group/more">
           <summary className={seeMore}>See more +</summary>
           <ul className="mt-2 space-y-2">
             {items.slice(keep).map(([l, h]) => (
@@ -393,7 +393,7 @@ export function SiteFooter({ hasBlog = false }: { hasBlog?: boolean }) {
         <li><a href={`tel:${site.contact.phone.replace(/\s/g, "")}`} className={`${link} metric`}>{site.contact.phone}</a></li>
         <li><a href={`mailto:${site.contact.email}`} className={link}>{site.contact.email}</a></li>
       </ul>
-      <details className="group">
+      <details className="group/more">
         <summary className={seeMore}>See more +</summary>
         <ul className="mt-2 space-y-2">
           <li className="text-sm text-glacier/90">{site.contact.address}</li>

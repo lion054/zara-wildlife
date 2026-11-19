@@ -67,7 +67,7 @@ export default function SafarisPage() {
           </div>
 
           <Collapse title="Safari questions" meta="Parks, seasons and how it works">
-            <Faq items={content.faqs.destinations.map((q) => ({ q: q.q, a: q.a }))} />
+            <Faq flush items={content.faqs.destinations.map((q) => ({ q: q.q, a: q.a }))} />
             <p className="mt-5 text-sm text-scree">
               More in the <Link href="/faqs/safari" className="text-tanzanite underline underline-offset-4">safari FAQ</Link>.
             </p>

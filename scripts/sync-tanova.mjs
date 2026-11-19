@@ -64,14 +64,48 @@ const decode = (t) =>
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
     .replace(/&([a-z]+);/gi, (m, n) => NAMED[n.toLowerCase()] ?? m);
 const text = (h) => decode(h.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+/* A sentence the editor broke into blocks (a paste that wrapped bold words in <h3>: "known as the" / "Saddle" /
+ * ", a rugged landscape between the" / "Kibo" / "and" / "Mawenzi" / "peaks. …") is put back together, so the site does
+ * not show each piece as a heading. A block joins the one before when that one is plainly unfinished: it has no closing
+ * punctuation and the next block carries on (a comma, a lowercase start), or it stops on a word no sentence ends with. */
+const OPEN_ENDS = new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "at", "between", "around", "about", "from", "with", "for", "as", "by", "into", "across", "than", "near", "over", "under", "is", "are", "was", "takes", "known", "towards", "toward", "through", "this", "your", "our", "its", "their", "reaching", "via", "descend", "enter", "reach", "visit", "explore", "climb", "continue"]);
+/** "Hiking distance: 10 km": a stat line, never part of a sentence. */
+const isStat = (s) => /^[A-Za-z][^:]{1,30}:\s/.test(s) && s.length < 60;
+function rejoin(blocks) {
+  const out = [];
+  for (const b of blocks) {
+    const prev = out[out.length - 1];
+    // "Cycling Distance" then "10 km": a stat whose colon was lost between blocks.
+    if (prev && /^([A-Z][a-z]+ ){0,2}[A-Z][a-z]+$/.test(prev) && /^((approximately|about|around|up to)\s+)?\d[^.]{0,20}?\b(km|m|meters|metres|hours?|hrs?|minutes?|mins?|days?)\b/i.test(b)) {
+      out[out.length - 1] = `${prev}: ${b}`;
+      continue;
+    }
+    const finished = !prev || /[.!?…:;"”’)\]]$/.test(prev) || isStat(prev) || isStat(b);
+    const carriesOn = /^[a-z,;:.)\]]/.test(b) || (/^\d/.test(b) && /\b(around|about|of|to|takes)$/i.test(prev ?? ""));
+    const lastWord = (prev ?? "").split(/\s+/).pop()?.toLowerCase() ?? "";
+    // A heading is short; a long block with no full stop is a sentence the editor cut.
+    // "Waterfall Visit": a heading in Title Case is joined only when the next block plainly carries it on.
+    const titleCase = /^([A-Z0-9][\w’'&-]*)( [A-Z0-9&][\w’'&-]*)*$/.test(prev ?? "");
+    const loneWord = OPEN_ENDS.has((prev ?? "").toLowerCase()); // "At", "And": never a heading on its own
+    if (!finished && (carriesOn || loneWord || (!titleCase && (OPEN_ENDS.has(lastWord) || prev.length > 60)))) {
+      out[out.length - 1] = /^[,;:.)\]]/.test(b) ? prev + b : `${prev} ${b}`;
+    } else {
+      out.push(b);
+    }
+  }
+  return out;
+}
+
 /** Block-level html -> one string per paragraph or heading. */
 const lines = (h) =>
-  (h ?? "")
-    .replace(/<\/(p|h[1-6]|li|div|ul|ol)>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .split("\n")
-    .map(text)
-    .filter(Boolean);
+  rejoin(
+    (h ?? "")
+      .replace(/<\/(p|h[1-6]|li|div|ul|ol)>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .split("\n")
+      .map(text)
+      .filter(Boolean),
+  );
 
 function splitSections(html) {
   const parts = (html ?? "").split(/<h2[^>]*>/i);
@@ -95,7 +129,15 @@ function parseDay(it, n) {
     overnight = text(v);
     return "";
   });
-  return { n, label: text(it.desc ?? it.title ?? `Day ${n}`), stats, text: lines(html), overnight, images: [] };
+  // Markdown typed into the editor ("####" on its own, "## Title") is not shown as is.
+  let body = lines(html).map((l) => l.replace(/^#{1,6}\s+/, "")).filter((l) => !/^#{1,6}$/.test(l));
+  // A day that ends on the lodge ("Endoro Lodge or similar") says where they sleep: show it as the overnight.
+  const last = body[body.length - 1];
+  if (!overnight && last && last.length < 80 && /\bor similar\.?$/i.test(last)) {
+    overnight = last.replace(/\.$/, "");
+    body = body.slice(0, -1);
+  }
+  return { n, label: text(it.desc ?? it.title ?? `Day ${n}`), stats, text: body, overnight, images: [] };
 }
 
 /** Tanova's per-size bands -> "From, per person" rows, merging sizes with the same price. */

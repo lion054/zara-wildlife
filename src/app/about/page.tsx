@@ -70,7 +70,7 @@ export default function AboutPage() {
                 content: (
                   <div>
                     {content.about.whyIntro && <p className="mb-6 max-w-3xl text-base text-scree">{content.about.whyIntro}</p>}
-                    <Faq items={content.about.why.map((w) => ({ q: w.title, a: w.text }))} />
+                    <Faq flush items={content.about.why.map((w) => ({ q: w.title, a: w.text }))} />
                   </div>
                 ),
               },

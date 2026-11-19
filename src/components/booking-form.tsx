@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { DepartureCalendar } from "@/components/departure-calendar";
 import { EnquiryForm } from "@/components/enquiry-form";
 import { createBooking, type BookingResult } from "@/lib/bookings";
 import { perPerson } from "@/lib/price";
 
-type Dep = { start: string; seatsLeft: number | null; open: boolean; price: number | null };
+type Dep = { start: string; end?: string | null; seatsLeft: number | null; open: boolean; price: number | null };
 
 const field =
   "w-full rounded-lg border border-scree/60 bg-white px-4 py-3 text-sm text-basalt focus:border-tanzanite focus:outline-none";
@@ -138,24 +139,7 @@ export function BookingForm({
       {fixedDate ? (
         <fieldset>
           <legend className={lab}>Choose your departure</legend>
-          <div className="space-y-2">
-            {departures.slice(0, 12).map((d) => (
-              <label
-                key={d.start}
-                className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
-                  start === d.start ? "border-tanzanite bg-tanzanite/5" : "border-scree/40 bg-white"
-                }`}
-              >
-                <span className="flex items-center gap-3">
-                  <input type="radio" name="departure" checked={start === d.start} onChange={() => setStart(d.start)} className="h-4 w-4 accent-brand" />
-                  <span className="text-basalt">{pretty(d.start)}</span>
-                </span>
-                <span className="label text-scree">
-                  {!d.open ? "Full · waitlist" : d.seatsLeft !== null && d.seatsLeft <= 4 ? `${d.seatsLeft} left` : "Open"}
-                </span>
-              </label>
-            ))}
-          </div>
+          <DepartureCalendar departures={departures} selected={start} onSelect={setStart} />
           {err.start && <p className="mt-1.5 text-xs text-sunrise-ink">{err.start}</p>}
         </fieldset>
       ) : (
