@@ -33,27 +33,37 @@ const monthOf = (iso: string) => iso.slice(0, 7);
 const FEW = 4;
 
 /**
- * The group departures board: route chips on top, a month-and-year picker beside the list (each month shows how many
- * groups leave in it), and the departures as compact rows grouped by month.
+ * The group departures board: route chips on top; "When would you like to climb?" with the years and the months that have
+ * trips (rainy months marked); "Choose your departure" with how many are climbing, then the departures by month.
  */
+/** Kilimanjaro's wet months: the long rains (April, May) and the short rains (November). */
+const RAINY = new Set([4, 5, 11]);
+const isRainy = (monthKey: string) => RAINY.has(Number(monthKey.slice(5, 7)));
+
 export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; departures: BoardDeparture[] }) {
   const byKey = useMemo(() => new Map(routes.map((r) => [r.key, r])), [routes]);
   const [route, setRoute] = useState<string | null>(null);
-  const [month, setMonth] = useState<string | null>(null); // "2027-01", or null for every month
+  const [month, setMonth] = useState<string | null>(null); // "2027-01", or null for every month of the year
+  const [climbers, setClimbers] = useState(2);
 
   const forRoute = useMemo(() => departures.filter((d) => !route || d.routeKey === route), [departures, route]);
-  const shown = forRoute.filter((d) => !month || monthOf(d.start) === month);
+  // Years and months that have trips (for the route picked): a month with none is not offered at all.
+  const years = useMemo(() => [...new Set(forRoute.map((d) => d.start.slice(0, 4)))].sort(), [forRoute]);
+  const [yearPick, setYearPick] = useState<string | null>(null);
+  const year = yearPick && years.includes(yearPick) ? yearPick : (years[0] ?? null);
+  const months = useMemo(() => {
+    const c = new Map<string, number>();
+    for (const d of forRoute) if (d.start.startsWith(year ?? "")) c.set(monthOf(d.start), (c.get(monthOf(d.start)) ?? 0) + 1);
+    return [...c.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [forRoute, year]);
+  const shownMonth = month && months.some(([m]) => m === month) ? month : null;
+
+  const shown = forRoute.filter((d) => d.start.startsWith(year ?? "") && (!shownMonth || monthOf(d.start) === shownMonth));
   const groups = useMemo(() => {
     const g = new Map<string, BoardDeparture[]>();
     for (const d of shown) g.set(monthOf(d.start), [...(g.get(monthOf(d.start)) ?? []), d]);
     return [...g.entries()];
   }, [shown]);
-
-  const pickRoute = (k: string | null) => {
-    setRoute(k);
-    // A month the new route does not run in would show nothing: go back to every month.
-    if (month && !departures.some((d) => (!k || d.routeKey === k) && monthOf(d.start) === month)) setMonth(null);
-  };
 
   const chip = (active: boolean) =>
     `inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${
@@ -65,14 +75,14 @@ export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; d
       {/* Routes: sticky under the header so they stay at hand while scrolling the list. */}
       <div className="sticky top-0 z-20 -mx-6 border-b border-mist/70 bg-glacier/85 px-6 py-4 backdrop-blur-md">
         <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]" role="group" aria-label="Filter by route">
-          <button type="button" onClick={() => pickRoute(null)} aria-pressed={!route} className={chip(!route)}>
+          <button type="button" onClick={() => setRoute(null)} aria-pressed={!route} className={chip(!route)}>
             All routes <span className="text-[0.7rem] tabular-nums opacity-60">{departures.length}</span>
           </button>
           {routes.map((r) => {
             const n = departures.filter((d) => d.routeKey === r.key).length;
             if (!n) return null;
             return (
-              <button key={r.key} type="button" onClick={() => pickRoute(route === r.key ? null : r.key)} aria-pressed={route === r.key} className={chip(route === r.key)}>
+              <button key={r.key} type="button" onClick={() => setRoute(route === r.key ? null : r.key)} aria-pressed={route === r.key} className={chip(route === r.key)}>
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.color }} aria-hidden="true" />
                 {r.name.replace(/ Route$/, "")}
                 {r.days && <span className="opacity-60">{r.days}d</span>}
@@ -82,21 +92,89 @@ export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; d
         </div>
       </div>
 
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] lg:gap-10">
-        <aside className="lg:sticky lg:top-28">
-          <MonthPicker departures={forRoute} month={month} onPick={setMonth} />
-          <p className="mt-3 px-1 text-xs leading-relaxed text-scree">Every group has 12 seats. Pick a month to see who leaves then.</p>
-        </aside>
+      {/* When would you like to climb? The year, then its months that have trips. */}
+      <section aria-labelledby="when-climb" className="mt-8">
+        <h2 id="when-climb" className="font-display text-2xl md:text-3xl">When would you like to climb?</h2>
+        {years.length > 1 && (
+          <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Year">
+            {years.map((y) => {
+              const on = y === year;
+              return (
+                <button
+                  key={y}
+                  type="button"
+                  onClick={() => {
+                    setYearPick(y);
+                    setMonth(null);
+                  }}
+                  aria-pressed={on}
+                  className={`min-w-24 rounded-full px-6 py-3 text-base font-semibold tabular-nums transition ${
+                    on ? "bg-frost text-basalt ring-2 ring-basalt" : "bg-frost/60 text-scree ring-1 ring-mist hover:text-basalt"
+                  }`}
+                >
+                  {y}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={`Months of ${year}`}>
+          {months.map(([m, n]) => {
+            const on = shownMonth === m;
+            const wet = isRainy(m);
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMonth(on ? null : m)}
+                aria-pressed={on}
+                aria-label={`${fmt(`${m}-01`, { month: "long", year: "numeric" })}: ${n} ${n === 1 ? "departure" : "departures"}${wet ? ", rainy season" : ""}`}
+                className={`inline-flex min-w-24 items-center justify-center gap-1.5 rounded-full px-5 py-3 text-base font-semibold transition ${
+                  on
+                    ? "bg-tanzanite text-glacier ring-2 ring-tanzanite ring-offset-2"
+                    : "bg-tanzanite/90 text-glacier hover:bg-tanzanite"
+                }`}
+              >
+                {fmt(`${m}-01`, { month: "short" }).replace("Sept", "Sep")}
+                {wet && <RainIcon />}
+              </button>
+            );
+          })}
+          {shownMonth && (
+            <button type="button" onClick={() => setMonth(null)} className="rounded-full px-4 py-3 text-sm font-semibold text-tanzanite underline underline-offset-4">
+              Show all of {year}
+            </button>
+          )}
+        </div>
+      </section>
 
-        <div aria-live="polite">
+      {/* Choose your departure: how many are coming, then the departures. */}
+      <section aria-labelledby="choose-departure" className="mt-10">
+        <h2 id="choose-departure" className="font-display text-2xl md:text-3xl">Choose your departure</h2>
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-white px-5 py-4 ring-1 ring-mist">
+          <span className="text-base font-semibold text-basalt">Climbers</span>
+          <div className="flex items-center rounded-xl ring-1 ring-mist">
+            <button type="button" onClick={() => setClimbers(Math.max(1, climbers - 1))} disabled={climbers <= 1} aria-label="Fewer climbers" className="grid h-11 w-11 place-items-center text-xl text-tanzanite disabled:opacity-30">
+              −
+            </button>
+            <span className="w-10 text-center text-lg font-semibold tabular-nums text-basalt" aria-live="polite">
+              {climbers}
+            </span>
+            <button type="button" onClick={() => setClimbers(Math.min(12, climbers + 1))} disabled={climbers >= 12} aria-label="More climbers" className="grid h-11 w-11 place-items-center text-xl text-tanzanite disabled:opacity-30">
+              +
+            </button>
+          </div>
+          <span className="text-sm text-tanzanite">Same price per person whatever your group size. Solo travellers pay no supplement.</span>
+        </div>
+
+        <div className="mt-6" aria-live="polite">
           {groups.length === 0 && (
             <p className="rounded-2xl bg-frost px-6 py-10 text-center text-sm text-scree">No departures match. Try another route or month.</p>
           )}
-
           {groups.map(([m, list]) => (
             <section key={m} className="mb-10 last:mb-0" aria-label={fmt(`${m}-01`, { month: "long", year: "numeric" })}>
               <div className="mb-4 flex items-baseline justify-between gap-3">
-                <h2 className="font-display text-2xl md:text-3xl">{fmt(`${m}-01`, { month: "long", year: "numeric" })}</h2>
+                <h3 className="font-display text-xl md:text-2xl">{fmt(`${m}-01`, { month: "long", year: "numeric" })}</h3>
                 <p className="label text-scree">
                   {list.length} {list.length === 1 ? "departure" : "departures"}
                 </p>
@@ -104,71 +182,28 @@ export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; d
               <ol className="space-y-3">
                 {list.map((d) => (
                   <li key={`${d.routeKey}-${d.start}`}>
-                    <Row d={d} r={byKey.get(d.routeKey)} />
+                    <Row d={d} r={byKey.get(d.routeKey)} climbers={climbers} />
                   </li>
                 ))}
               </ol>
             </section>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
 
-/**
- * The months that have departures, each with its year and how many groups leave in it. Picking one narrows the list to
- * it; picking it again (or "All months") shows them all. Grows by itself as the office adds dates in Tanova.
- */
-function MonthPicker({ departures, month, onPick }: { departures: BoardDeparture[]; month: string | null; onPick: (m: string | null) => void }) {
-  const months = useMemo(() => {
-    const c = new Map<string, number>();
-    for (const d of departures) c.set(monthOf(d.start), (c.get(monthOf(d.start)) ?? 0) + 1);
-    return [...c.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [departures]);
-
-  const tile = (on: boolean) =>
-    `flex flex-col items-start justify-center rounded-xl px-4 py-3 text-left transition ${
-      on ? "bg-tanzanite text-glacier shadow-[0_10px_24px_-14px_rgba(86,106,27,0.9)]" : "bg-frost text-basalt ring-1 ring-mist hover:ring-tanzanite/40"
-    }`;
-
+function RainIcon() {
   return (
-    <div className="rounded-2xl bg-white p-4 ring-1 ring-mist sm:p-5">
-      <p className="label mb-3 text-scree">When do you want to go?</p>
-      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Filter by month">
-        <button type="button" onClick={() => onPick(null)} aria-pressed={!month} className={`${tile(!month)} col-span-2`}>
-          <span className="text-sm font-semibold">All months</span>
-          <span className={`text-xs tabular-nums ${!month ? "text-glacier/80" : "text-scree"}`}>
-            {departures.length} {departures.length === 1 ? "group" : "groups"}
-          </span>
-        </button>
-        {months.map(([key, n]) => {
-          const on = month === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onPick(on ? null : key)}
-              aria-pressed={on}
-              aria-label={`${fmt(`${key}-01`, { month: "long", year: "numeric" })}: ${n} ${n === 1 ? "departure" : "departures"}`}
-              className={tile(on)}
-            >
-              <span className="flex items-baseline gap-1.5">
-                <span className="font-display text-xl leading-tight">{fmt(`${key}-01`, { month: "short" })}</span>
-                <span className={`text-sm tabular-nums ${on ? "text-glacier/80" : "text-scree"}`}>{key.slice(0, 4)}</span>
-              </span>
-              <span className={`text-xs tabular-nums ${on ? "text-glacier/80" : "text-scree"}`}>
-                {n} {n === 1 ? "group" : "groups"}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+      <path d="M6 12a4 4 0 0 1-.4-7.98A5 5 0 0 1 15.5 6.1 3 3 0 0 1 15 12H6z" opacity="0.9" />
+      <path d="M7 14.5l-.8 2M10.5 14.5l-.8 2M14 14.5l-.8 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
   );
 }
 
-function Row({ d, r }: { d: BoardDeparture; r?: BoardRoute }) {
+function Row({ d, r, climbers = 1 }: { d: BoardDeparture; r?: BoardRoute; climbers?: number }) {
   const taken = d.capacity !== null && d.seatsLeft !== null ? d.capacity - d.seatsLeft : null;
   const pct = d.capacity && taken !== null ? Math.round((taken / d.capacity) * 100) : 0;
   const few = d.open && d.seatsLeft !== null && d.seatsLeft <= FEW;
@@ -199,7 +234,7 @@ function Row({ d, r }: { d: BoardDeparture; r?: BoardRoute }) {
           <span className="truncate font-display text-lg leading-tight text-basalt md:text-xl">{(r?.name ?? "Group climb").replace(/ Route$/, "")}</span>
           {r?.days ? <span className="label shrink-0 rounded-full bg-frost px-2 py-0.5 text-[0.6rem] text-scree">{r.days} days</span> : null}
         </p>
-        <p className="mt-1 text-sm text-scree">
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-scree">
           {d.end ? `${fmt(d.start, { weekday: "short", day: "numeric", month: "short" })} – ${fmt(d.end, { weekday: "short", day: "numeric", month: "short" })}` : fmt(d.start, { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
@@ -228,7 +263,7 @@ function Row({ d, r }: { d: BoardDeparture; r?: BoardRoute }) {
           <span className="metric block text-xl text-basalt">{d.price ? `$${d.price.toLocaleString()}` : "On request"}</span>
           {d.price ? <span className="label text-[0.6rem] text-scree">per person</span> : null}
           {d.open && d.hold ? (
-            <span className="mt-1.5 block whitespace-nowrap text-[0.7rem] font-semibold text-tanzanite">Hold a seat for ${d.hold.toLocaleString()}</span>
+            <span className="mt-1.5 block whitespace-nowrap text-[0.7rem] font-semibold text-tanzanite">{climbers === 1 ? "Hold your seat" : `Hold ${climbers} seats`} for ${(d.hold * climbers).toLocaleString()}</span>
           ) : null}
         </p>
         <Link
