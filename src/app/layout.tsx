@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, IBM_Plex_Mono, Karla } from "next/font/google";
+import { IBM_Plex_Mono } from "next/font/google";
 import { CookieBanner } from "@/components/cookie-banner";
-import { Zita } from "@/components/zita";
+import { ZitaLauncher } from "@/components/zita-launcher";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { getPosts } from "@/lib/posts";
 import { displayTitle, getTour, tourPath, type TourKind } from "@/lib/tours";
@@ -17,8 +17,6 @@ import "./globals.css";
  * substituting a proportional face would break the one piece of typography
  * here that carries information rather than mood.
  */
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
-const karla = Karla({ subsets: ["latin"], variable: "--font-karla", display: "swap" });
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -41,7 +39,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: site.name,
     description: site.description,
-    url: site.url,
     siteName: site.name,
     locale: "en_GB",
     type: "website",
@@ -101,7 +98,7 @@ export default async function RootLayout({
     ],
   };
   return (
-    <html lang="en" className={`${plexMono.variable} ${fraunces.variable} ${karla.variable}`}>
+    <html lang="en" className={plexMono.variable}>
       <body>
         <a
           href="#main"
@@ -113,7 +110,7 @@ export default async function RootLayout({
         <main id="main">{children}</main>
         <SiteFooter hasBlog={hasBlog} />
         <CookieBanner />
-        <Zita />
+        <ZitaLauncher />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

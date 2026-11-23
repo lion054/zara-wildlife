@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PhoneField } from "@/components/phone-field";
 import { submitEnquiry, type EnquiryKind, type EnquiryResult } from "@/lib/enquiries";
 
 /**
@@ -120,20 +121,7 @@ export function EnquiryForm({
       </div>
 
       {!compact && (
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className={labelCls} htmlFor={`phone-${kind}`}>
-              Phone number
-            </label>
-            <input id={`phone-${kind}`} name="phone" type="tel" autoComplete="tel" className={field} />
-          </div>
-          <div>
-            <label className={labelCls} htmlFor={`country-${kind}`}>
-              Country
-            </label>
-            <input id={`country-${kind}`} name="country" autoComplete="country-name" className={field} />
-          </div>
-        </div>
+        <PhoneField id={`phone-${kind}`} label="Phone or WhatsApp" fieldClass={field} labelClass={labelCls} />
       )}
 
       {!compact && (

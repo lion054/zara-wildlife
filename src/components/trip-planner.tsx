@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { PackagePlanner } from "@/components/package-planner";
-import { AskZitaButton } from "@/components/zita";
+import { AskZitaButton } from "@/components/zita-launcher";
 import { bookTrip, planTrip, type PlannedTrip, type PlannerPlace, type TripBooking } from "@/lib/planner";
 
 /**

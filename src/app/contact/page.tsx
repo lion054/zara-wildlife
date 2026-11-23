@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { EnquiryForm } from "@/components/enquiry-form";
 import { Contour, Eyebrow } from "@/components/primitives";
 import { site } from "@/lib/site";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/contact", {
   title: "Contact",
   description: "Reach the team in Moshi by email, phone or WhatsApp.",
-};
+});
 
 const label = "label mb-2 block text-scree";
 

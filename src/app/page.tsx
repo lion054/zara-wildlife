@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { HeroSlider } from "@/components/hero-slider";
+import { withSeo } from "@/lib/seo";
 import { DepartureCard } from "@/components/departure-card";
 import { Button, Section } from "@/components/primitives";
 import { SectionTitle, TripCard } from "@/components/tsoka";
@@ -79,8 +81,11 @@ function shuffle<T>(items: T[]): T[] {
   return a;
 }
 
-/* Rendered per visit so the banner order is different on every reload. */
-export const dynamic = "force-dynamic";
+/* Served ready-made and refreshed every minute: the departures stay live and the banner order changes, without
+   rebuilding the page for every visitor (which made it the slowest page to start loading). */
+export const revalidate = 60;
+
+export const metadata: Metadata = withSeo("/", {});
 
 export default async function HomePage() {
   /* Live from Tanova: dates and seats left are never typed into this repo. */
@@ -281,7 +286,7 @@ export default async function HomePage() {
           <ul className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4" aria-label="Memberships">
             {site.members.map((m) => (
               <li key={m.name}>
-                <Image src={m.logo} alt={m.full} width={m.w} height={m.h} className="h-12 w-auto object-contain opacity-90" />
+                <Image src={m.logo} alt={m.full} width={m.w} height={m.h} sizes="120px" className="h-12 w-auto object-contain opacity-90" />
               </li>
             ))}
           </ul>

@@ -103,9 +103,11 @@
   --color-zone-desert: #c9a14a;
   --color-zone-arctic: #7fd0e8;
 
-  --font-display: "Megafield", var(--font-fraunces), Georgia, serif;
-  --font-body: "Nobel Uno", var(--font-karla), system-ui, -apple-system, sans-serif;
-  --font-label: "Nobel Uno", var(--font-karla), system-ui, sans-serif;
+  --font-display: "Megafield", Georgia, "Times New Roman", serif;
+  /* Body and labels: the device's own system font. SF Pro on iPhone, iPad and Mac (Apple licenses it for its
+     platforms only, so it is asked for by name, never hosted here), Segoe UI on Windows, Roboto on Android. */
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", system-ui, sans-serif;
+  --font-label: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   /* Kiwano's card language */

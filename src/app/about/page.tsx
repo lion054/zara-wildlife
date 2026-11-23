@@ -7,12 +7,13 @@ import { Collapse, Tabs } from "@/components/ui";
 import taReviews from "@/data/tripadvisor.json";
 import { content } from "@/lib/content";
 import { guides, site } from "@/lib/site";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/about", {
   title: "About us",
   description:
     "Who guides you, how we treat our porters, what we carry for safety, and the licences we hold.",
-};
+});
 
 export default function AboutPage() {
   return (
@@ -190,7 +191,7 @@ export default function AboutPage() {
         <ul className="mt-6 flex flex-wrap items-center justify-center gap-6">
           {site.members.map((m) => (
             <li key={m.name} className="flex h-24 w-36 flex-col items-center justify-center rounded-2xl bg-basalt p-3 text-center">
-              <Image src={m.logo} alt={m.full} width={m.w} height={m.h} className="h-14 w-auto object-contain" />
+              <Image src={m.logo} alt={m.full} width={m.w} height={m.h} sizes="140px" className="h-14 w-auto object-contain" />
             </li>
           ))}
         </ul>

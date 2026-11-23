@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Faq } from "@/components/faq";
 import { Eyebrow, Section } from "@/components/primitives";
 import { content } from "@/lib/content";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/faqs/kilimanjaro", {
   title: "FAQs about climbing Mount Kilimanjaro",
   description: "Routes, seasons, fitness, altitude, tipping and kit: the questions climbers ask before booking.",
-};
+});
 
 export default function Page() {
   return (

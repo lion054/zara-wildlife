@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Prose } from "@/components/prose";
 import { Eyebrow, Section } from "@/components/primitives";
 import { content } from "@/lib/content";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/tipping-policy", {
   title: "Tipping policy",
   description: "Recommended daily tips for guides, porters and crew on a Kilimanjaro or Meru climb.",
-};
+});
 
 export default function Page() {
   return (

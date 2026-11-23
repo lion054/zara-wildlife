@@ -129,6 +129,7 @@ export function SiteHeader({ hasBlog = false, popular = {} }: { hasBlog?: boolea
               width={1641}
               height={424}
               priority
+              sizes="(min-width: 640px) 217px, 170px"
               className="h-11 w-auto sm:h-14"
             />
           </Link>
@@ -434,7 +435,7 @@ export function SiteFooter({ hasBlog = false }: { hasBlog?: boolean }) {
         {/* Brand and the three ways to reach us */}
         <div className="flex flex-col gap-6 border-b border-glacier/15 pb-8 md:flex-row md:items-center md:justify-between">
           <div>
-            <Image src="/brand/logo.png" alt={site.name} width={1641} height={424} className="h-12 w-auto" />
+            <Image src="/brand/logo.png" alt={site.name} width={1641} height={424} sizes="186px" className="h-12 w-auto" />
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-glacier/85">
               Kilimanjaro, safaris, Zanzibar and day trips, run from Moshi since {site.established}.
             </p>
@@ -466,12 +467,12 @@ export function SiteFooter({ hasBlog = false }: { hasBlog?: boolean }) {
         <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 border-t border-glacier/15 py-5 md:justify-start" aria-label="Memberships">
           {site.members.map((m) => (
             <li key={m.name}>
-              <Image src={m.logo} alt={m.full} width={m.w} height={m.h} className="h-8 w-auto object-contain opacity-90" />
+              <Image src={m.logo} alt={m.full} width={m.w} height={m.h} sizes="80px" className="h-8 w-auto object-contain opacity-90" />
             </li>
           ))}
           {site.payments.url && (
             <li>
-              <Image src={site.payment.logo} alt="Accepted payment methods" width={site.payment.w} height={site.payment.h} className="h-7 w-auto rounded bg-glacier/95 p-1" />
+              <Image src={site.payment.logo} alt="Accepted payment methods" width={site.payment.w} height={site.payment.h} sizes="150px" className="h-7 w-auto rounded bg-glacier/95 p-1" />
             </li>
           )}
         </ul>

@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Contour, Eyebrow } from "@/components/primitives";
 import { TripPlanner } from "@/components/trip-planner";
 import { plannerPlaces } from "@/lib/planner";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/plan", {
   title: "Plan my trip",
   description: "Tell us where and when: get a priced, day-by-day trip from our own climbs, safaris and day trips, and book it in one go.",
-};
+});
 
 /* The places the planner can plan are read from Tanova every ten minutes. */
 export const revalidate = 600;

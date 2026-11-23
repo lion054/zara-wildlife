@@ -5,11 +5,13 @@ import { PhotoHero, Section } from "@/components/primitives";
 import { Collapse, FilterGrid } from "@/components/ui";
 import { content } from "@/lib/content";
 import { toursOfKind } from "@/lib/tours";
+import { withSeo } from "@/lib/seo";
+import { photo } from "@/lib/photos";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/day-trips", {
   title: "Day trips from Moshi and Arusha",
   description: "Waterfalls, hot springs, coffee farms, national parks and a Maasai boma: bookable on their own or added to any climb or safari.",
-};
+}, photo("hero-daytrips"));
 
 export default function DayTripsPage() {
   return (
@@ -20,7 +22,7 @@ export default function DayTripsPage() {
         </PageIntro>
       </PhotoHero>
       <Section>
-        <FilterGrid items={tourItems(toursOfKind("daytrip"))} filters={[]} initial={6} />
+        <FilterGrid heading="Day trips" items={tourItems(toursOfKind("daytrip"))} filters={[]} initial={6} />
       </Section>
       <Section tone="frost">
         <div className="mx-auto max-w-4xl">

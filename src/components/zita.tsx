@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ZitaFace } from "@/components/zita-launcher";
+
+export { AskZitaButton } from "@/components/zita-launcher";
 
 /**
  * Zita: the site's travel concierge. Answers come from the company's Tanova (its AI, its tours, its departures);
@@ -22,10 +25,11 @@ const HELLO: Msg = {
   content: "Hello, I'm Zita. Ask me about climbing Kilimanjaro, safaris, Zanzibar or a day out from Moshi, and I'll point you to the right trip and its real price.",
 };
 
-export function Zita() {
-  const [open, setOpen] = useState(false);
+/** Loaded on demand by ZitaLauncher, which says whether to open at once and with what question. */
+export function Zita({ initialOpen = false, initialQuestion = "" }: { initialOpen?: boolean; initialQuestion?: string } = {}) {
+  const [open, setOpen] = useState(initialOpen);
   const [msgs, setMsgs] = useState<Msg[]>([HELLO]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialQuestion);
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"zita" | "form" | "team">("zita");
   const [team, setTeam] = useState<TeamMsg[]>([]);
@@ -180,7 +184,7 @@ export function Zita() {
           type="button"
           onClick={() => setOpen(true)}
           className="fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full bg-basalt py-2 pl-2 pr-5 text-glacier shadow-lift transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-          aria-label="Ask Zita, our travel concierge"
+          aria-label="Ask Zita: trips, prices, dates"
         >
           <ZitaFace size={40} />
           <span className="text-left leading-tight">
@@ -396,19 +400,6 @@ function Field({ label, value, onChange, type = "text", autoComplete }: { label:
   );
 }
 
-/** Zita's mark: a sunrise over Kilimanjaro's shoulder, in the brand's amber and green. */
-function ZitaFace({ size }: { size: number }) {
-  return (
-    <span className="grid shrink-0 place-items-center rounded-full bg-brand" style={{ width: size, height: size }} aria-hidden>
-      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="13" r="6" fill="#14130c" opacity="0.9" />
-        <path d="M2 27l9-11 5 6 4-4 10 9H2z" fill="#14130c" />
-        <path d="M11 16l2.2 2.6L15 17l-4-1z" fill="#fff" opacity="0.9" />
-      </svg>
-    </span>
-  );
-}
-
 function TeamFace() {
   return (
     <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-tanzanite text-[12px] font-bold text-glacier" aria-hidden>
@@ -417,11 +408,4 @@ function TeamFace() {
   );
 }
 
-/** A button anywhere on the site that opens Zita, optionally with a question ready. */
-export function AskZitaButton({ question, children, className }: { question?: string; children: React.ReactNode; className?: string }) {
-  return (
-    <button type="button" className={className} onClick={() => window.dispatchEvent(new CustomEvent("zita:open", { detail: question ?? "" }))}>
-      {children}
-    </button>
-  );
-}
+

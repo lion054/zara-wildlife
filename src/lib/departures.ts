@@ -40,11 +40,10 @@ export async function departuresFor(tour: Tour, horizon = 365): Promise<Departur
     // The API answers at most 120 days at a time: walk the horizon in windows.
     const windows: [string, string][] = [];
     for (let s = from; s <= addDays(from, horizon); s = addDays(s, 121)) windows.push([s, addDays(s, 120)]);
-    const pages = await Promise.all(
-      windows.map(([a, b]) =>
-        tanova<{ data: { days: Day[] } }>(`/services/tours/${tour.tanovaId}/departures?from=${a}&to=${b}`, { revalidate: 60 }),
-      ),
-    );
+    // One retry: a single slow answer from Tanova must not show a group climb as having no dates for a whole minute.
+    const get = (a: string, b: string) =>
+      tanova<{ data: { days: Day[] } }>(`/services/tours/${tour.tanovaId}/departures?from=${a}&to=${b}`, { revalidate: 60 });
+    const pages = await Promise.all(windows.map(([a, b]) => get(a, b).catch(() => get(a, b))));
     const nights = parseInt(tour.duration ?? "", 10) || null;
     return pages
       .flatMap((p) => p.data.days)

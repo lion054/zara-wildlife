@@ -139,6 +139,7 @@ export function FilterGrid({
   step = 6,
   label = "Filter",
   columns = "sm:grid-cols-2 lg:grid-cols-3",
+  heading,
 }: {
   items: { tags: string[]; node: ReactNode; key: string }[];
   filters: { label: string; tag: string }[];
@@ -146,6 +147,8 @@ export function FilterGrid({
   step?: number;
   label?: string;
   columns?: string;
+  /** A section heading read by screen readers, so the cards' own headings sit under it (h1 → h2 → h3). */
+  heading?: string;
 }) {
   const [tag, setTag] = useState("all");
   const [shown, setShown] = useState(initial);
@@ -153,6 +156,7 @@ export function FilterGrid({
 
   return (
     <div>
+      {heading && <h2 className="sr-only">{heading}</h2>}
       {filters.length > 0 && (
         <div role="group" aria-label={label} className="flex flex-wrap justify-center gap-2">
           {[{ label: "All", tag: "all" }, ...filters].map((f) => (

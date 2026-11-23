@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Prose } from "@/components/prose";
 import { Eyebrow, Section } from "@/components/primitives";
 import { content } from "@/lib/content";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/privacy-policy", {
   title: "Privacy policy",
   description: "How Tanzania Wildlife Adventures collects, uses and protects your personal information.",
-};
+});
 
 export default function Page() {
   return (

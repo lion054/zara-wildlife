@@ -4,10 +4,14 @@ import { EnquiryForm } from "@/components/enquiry-form";
 import { BookingForm } from "@/components/booking-form";
 import { Collapse, MobileBookBar, PhotoGrid, Tabs } from "@/components/ui";
 import { departuresFor } from "@/lib/departures";
+import { balanceDue, depositLabel, groupTerms } from "@/lib/group-terms";
+import { trekDays } from "@/lib/itinerary";
+import { ItineraryOverview } from "@/components/itinerary-overview";
 import { tanovaConfigured } from "@/lib/tanova";
 import { Button, Eyebrow, Section } from "@/components/primitives";
 import { SectionTitle, TripCard } from "@/components/tsoka";
 import { displayTitle, excerpt, tourPath, tours, type Img, type Tour, type TourKind } from "@/lib/tours";
+import { withSeo } from "@/lib/seo";
 import { site } from "@/lib/site";
 
 const KIND: Record<TourKind, { label: string; back: { href: string; label: string }; bg: string }> = {
@@ -58,6 +62,8 @@ export async function TourPage({ tour }: { tour: Tour }) {
   /* What Tanova offers for this tour decides what the page lets you do. */
   const bookable = tanovaConfigured && Boolean(tour.tanovaId) && Boolean(tour.from || tour.fixedDate);
   const departures = tour.fixedDate && bookable ? await departuresFor(tour) : [];
+  // A group climb's own payment terms (the deposit that holds a seat, when the rest is due), live from Tanova.
+  const terms = tour.fixedDate && bookable ? await groupTerms(tour.tanovaId) : null;
   const nextOpen = departures.filter((d) => d.open).slice(0, 3);
   const cta = tour.fixedDate ? "Reserve a seat" : bookable ? "Book now" : "Ask for a quote";
   const meta = KIND[tour.kind];
@@ -104,12 +110,15 @@ export async function TourPage({ tour }: { tour: Tour }) {
     </div>
   );
 
+  const trek = trekDays(tour.days);
   const itinerary = (
+    <>
+    {trek.length >= 3 && <ItineraryOverview days={trek} startDate={departures.find((d) => d.open)?.start ?? null} />}
     <ol className="space-y-3">
       {tour.days.map((d, i) => {
         const stats = Object.values(d.stats).filter(Boolean);
         return (
-          <li key={d.n}>
+          <li key={d.n} id={`day-${d.n}`} className="scroll-mt-28">
             <Collapse
               defaultOpen={i === 0}
               badge={<span className="metric shrink-0 rounded-full bg-tanzanite px-3 py-1 text-xs text-glacier">Day {d.n}</span>}
@@ -143,6 +152,7 @@ export async function TourPage({ tour }: { tour: Tour }) {
         );
       })}
     </ol>
+    </>
   );
 
   const included = (
@@ -278,7 +288,7 @@ export async function TourPage({ tour }: { tour: Tour }) {
 
       {/* ---- Body: tabs + sticky booking card ---- */}
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-10 pb-28 md:py-14 lg:grid-cols-[1fr_340px] lg:pb-14">
-        <Tabs tabs={tabs} label={`${tour.title} details`} />
+        <Tabs tabs={tabs} label={`${tour.title} details`} className="min-w-0" />
 
         <aside className="h-fit lg:sticky lg:top-6">
           <div className="rounded-3xl bg-glacier p-6 shadow-[0_24px_60px_-28px_rgba(43,44,16,0.4)] ring-1 ring-mist">
@@ -365,6 +375,11 @@ export async function TourPage({ tour }: { tour: Tour }) {
                 fixedDate={Boolean(tour.fixedDate)}
                 departures={departures.map((d) => ({ start: d.start, end: d.end, seatsLeft: d.seatsLeft, open: d.open, price: d.price }))}
                 ladder={tour.ladder}
+                deposit={
+                  terms
+                    ? { type: terms.depositType, amount: terms.depositAmount, label: depositLabel(terms), due: balanceDue(terms), topups: terms.topups }
+                    : undefined
+                }
               />
             ) : (
               <EnquiryForm kind="trip" hidden={{ tour: tour.title, tourKey: `${tour.kind}:${tour.key}`, type: tour.kind }} submitLabel="Send enquiry" />
@@ -402,8 +417,13 @@ export async function TourPage({ tour }: { tour: Tour }) {
 
 export function tourMetadata(t: Tour | undefined) {
   if (!t) return {};
-  return {
-    title: t.title,
-    description: (t.metaDescription ?? t.overview[0] ?? "").replace(/\s+/g, " ").slice(0, 200),
-  };
+  return withSeo(tourPath(t), { title: displayTitle(t), description: snippet(t.metaDescription ?? t.overview[0] ?? "") }, t.hero);
+}
+
+/** A description that ends on a whole word, near the ~155 characters a search result shows. */
+function snippet(s: string, max = 158): string {
+  const t = s.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:.\s]+$/, "")}…`;
 }

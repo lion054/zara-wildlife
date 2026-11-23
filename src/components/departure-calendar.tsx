@@ -31,6 +31,8 @@ function seatsText(d: CalDeparture) {
  * A month calendar of group departures. Departure days are marked with what is left; days in between are quiet.
  *  - `pick` (a tour's booking form): choosing a day selects that departure and shades the whole trip, start to end.
  *  - `browse` (all departures): choosing a day lists the climbs that leave that day, each linking to its page.
+ *  - `filter` (a departure board): choosing a day hands it to `onSelect` (the board filters its own list), no extras.
+ * `month` / `onMonthChange` let a board keep the calendar on the month its tabs show.
  * Months with no departure are skipped by the arrows, so the visitor never pages through empty months.
  */
 export function DepartureCalendar({
@@ -38,11 +40,15 @@ export function DepartureCalendar({
   selected,
   onSelect,
   mode = "pick",
+  month: shownMonth,
+  onMonthChange,
 }: {
   departures: CalDeparture[];
   selected?: string;
   onSelect?: (start: string) => void;
-  mode?: "pick" | "browse";
+  mode?: "pick" | "browse" | "filter";
+  month?: string;
+  onMonthChange?: (month: string) => void;
 }) {
   const byDay = useMemo(() => {
     const m = new Map<string, CalDeparture[]>();
@@ -51,7 +57,11 @@ export function DepartureCalendar({
   }, [departures]);
   const months = useMemo(() => [...new Set(departures.map((d) => monthKey(d.start)))].sort(), [departures]);
   const firstOpen = departures.find((d) => d.open)?.start;
-  const [month, setMonth] = useState(() => monthKey(selected ?? firstOpen ?? departures[0]?.start ?? new Date().toISOString()));
+  const [ownMonth, setOwnMonth] = useState(() => monthKey(selected ?? firstOpen ?? departures[0]?.start ?? new Date().toISOString()));
+  // A board may drive the month; a month with nothing in it (after a filter) falls back to the first that has.
+  const wanted = shownMonth ?? ownMonth;
+  const month = months.includes(wanted) || months.length === 0 ? wanted : months[0];
+  const setMonth = (m: string) => (onMonthChange ? onMonthChange(m) : setOwnMonth(m));
   const [browseDay, setBrowseDay] = useState<string | null>(null);
 
   if (departures.length === 0) return null;
@@ -99,9 +109,9 @@ export function DepartureCalendar({
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center" role="grid" aria-label={`Departures in ${fmt(`${month}-01`, { month: "long", year: "numeric" })}`}>
+      <div className="mt-4 grid grid-cols-7 gap-1 text-center" role="group" aria-label={`Departures in ${fmt(`${month}-01`, { month: "long", year: "numeric" })}`}>
         {WEEK.map((w) => (
-          <span key={w} className="label pb-1 text-[0.65rem] text-scree" role="columnheader">
+          <span key={w} className="label pb-1 text-[0.65rem] text-scree" aria-hidden="true">
             {w}
           </span>
         ))}
@@ -112,15 +122,15 @@ export function DepartureCalendar({
           const has = deps.length > 0;
           const anyOpen = deps.some((x) => x.open);
           const few = anyOpen && deps.some((x) => x.open && x.seatsLeft !== null && x.seatsLeft <= FEW);
-          const isSel = mode === "pick" ? selected === iso : browseDay === iso;
+          const isSel = mode === "browse" ? browseDay === iso : selected === iso;
           const trip = inTrip(iso);
           const past = iso < today;
           const tone = !has
             ? trip
               ? "bg-frost text-basalt ring-1 ring-tanzanite/15"
               : past
-                ? "text-scree/40"
-                : "text-scree/70"
+                ? "text-scree/60"
+                : "text-scree"
             : isSel
               ? "bg-tanzanite text-glacier ring-2 ring-tanzanite ring-offset-2"
               : anyOpen
@@ -128,7 +138,9 @@ export function DepartureCalendar({
                   ? "bg-brand/20 text-basalt ring-1 ring-brand/70 hover:bg-brand/35"
                   : "bg-tanzanite/10 text-tanzanite ring-1 ring-tanzanite/35 hover:bg-tanzanite/20"
                 : "bg-mist/60 text-scree line-through decoration-scree/50 hover:bg-mist";
-          const sub = has ? (mode === "browse" && deps.length > 1 ? `${deps.length} trips` : seatsText(deps[0])) : "";
+          // In a narrow board column only what needs attention is labelled (few left, full); colour says the rest.
+          const quiet = mode === "filter" && anyOpen && !few;
+          const sub = !has || quiet ? "" : mode === "browse" && deps.length > 1 ? `${deps.length} trips` : seatsText(deps[0]);
           const label = has
             ? `${fmt(iso, { weekday: "long", day: "numeric", month: "long" })}: ${deps.map((x) => `${x.title ? `${x.title}, ` : ""}${seatsText(x)}`).join("; ")}`
             : undefined;
@@ -136,18 +148,17 @@ export function DepartureCalendar({
             <button
               key={iso}
               type="button"
-              role="gridcell"
               aria-label={label}
               aria-pressed={isSel}
-              onClick={() => (mode === "pick" ? onSelect?.(iso) : setBrowseDay(isSel ? null : iso))}
-              className={`flex aspect-square flex-col items-center justify-center rounded-xl font-mono text-sm font-semibold transition ${tone}`}
+              onClick={() => (mode === "browse" ? setBrowseDay(isSel ? null : iso) : onSelect?.(iso))}
+              className={`flex h-11 flex-col items-center justify-center rounded-xl text-sm font-semibold tabular-nums transition sm:h-12 ${tone}`}
             >
               <span>{d}</span>
               {/* On a narrow phone the colour says it (the legend and the summary below spell it out). */}
               <span className={`mt-1 hidden font-body text-[0.6rem] font-medium leading-none no-underline min-[420px]:block ${isSel ? "text-glacier/85" : "text-scree"}`}>{sub}</span>
             </button>
           ) : (
-            <span key={iso} role="gridcell" className={`flex aspect-square items-center justify-center rounded-xl font-mono text-sm ${tone}`}>
+            <span key={iso} aria-hidden="true" className={`flex h-11 items-center justify-center rounded-xl text-sm tabular-nums sm:h-12 ${tone}`}>
               {d}
             </span>
           );

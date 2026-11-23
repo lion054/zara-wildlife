@@ -3,11 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eyebrow, Section } from "@/components/primitives";
 import { categoriesOf, getPosts } from "@/lib/posts";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/blog", {
   title: "Blog",
   description: "Guides and field notes on Kilimanjaro, safari, Zanzibar and travelling in Tanzania.",
-};
+});
 
 const PER_PAGE = 12;
 
@@ -86,6 +87,7 @@ export default async function BlogPage({
                       alt={p.imageAlt ?? ""}
                       width={800}
                       height={500}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       className="h-52 w-full object-cover"
                     />
                   )}

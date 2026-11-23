@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Faq } from "@/components/faq";
 import { Eyebrow, Section } from "@/components/primitives";
 import { content } from "@/lib/content";
+import { withSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/faqs/safari", {
   title: "FAQs about a Tanzania safari",
   description: "When to go, what to pack, how it works and what it costs: the questions travellers ask before a safari.",
-};
+});
 
 export default function Page() {
   return (

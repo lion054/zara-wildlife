@@ -7,11 +7,13 @@ import { Collapse, FilterGrid } from "@/components/ui";
 import { content } from "@/lib/content";
 import { circuits, parks, safariExperiences } from "@/lib/parks";
 import { toursOfKind } from "@/lib/tours";
+import { withSeo } from "@/lib/seo";
+import { photo } from "@/lib/photos";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/safaris", {
   title: "Safaris",
   description: "Northern circuit safaris from Moshi and Arusha: Serengeti, Ngorongoro, Tarangire and Manyara, with day-by-day itineraries and prices.",
-};
+}, photo("hero-safaris"));
 
 export default function SafarisPage() {
   const items = tourItems(toursOfKind("safari"), (t) => [daysOf(t) <= 5 ? "short" : daysOf(t) <= 7 ? "week" : "long"]);
@@ -23,7 +25,7 @@ export default function SafarisPage() {
       </PhotoHero>
 
       <Section>
-        <FilterGrid
+        <FilterGrid heading="Safari packages"
           label="Filter safaris"
           items={items}
           initial={8}

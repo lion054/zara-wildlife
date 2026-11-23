@@ -6,11 +6,13 @@ import { Collapse, FilterGrid } from "@/components/ui";
 import { content } from "@/lib/content";
 import { toursOfKind } from "@/lib/tours";
 import { zanzibarAttractions, zanzibarSeasons } from "@/lib/zanzibar";
+import { withSeo } from "@/lib/seo";
+import { photo } from "@/lib/photos";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/zanzibar", {
   title: "Zanzibar",
   description: "Stone Town, the spice farms, Jozani Forest and the Mnemba reef: two nights to a week, on their own or after a climb.",
-};
+}, photo("hero-zanzibar"));
 
 export default function ZanzibarPage() {
   const items = tourItems(toursOfKind("zanzibar"), (t) => [daysOf(t) <= 3 ? "short" : daysOf(t) <= 5 ? "mid" : "long"]);
@@ -25,7 +27,7 @@ export default function ZanzibarPage() {
       </PhotoHero>
 
       <Section>
-        <FilterGrid
+        <FilterGrid heading="Zanzibar trips"
           label="Filter packages"
           items={items}
           filters={[

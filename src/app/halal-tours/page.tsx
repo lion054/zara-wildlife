@@ -8,12 +8,14 @@ import { SectionTitle } from "@/components/tsoka";
 import { Collapse, FilterGrid } from "@/components/ui";
 import { islamicEvents } from "@/lib/islamic-calendar";
 import { getTour, type Tour } from "@/lib/tours";
+import { withSeo } from "@/lib/seo";
+import { photo } from "@/lib/photos";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/halal-tours", {
   title: "Halal tours",
   description:
     "Muslim-friendly safaris, Kilimanjaro climbs and Zanzibar holidays from Moshi, with a calendar of Islamic dates to plan around: Ramadan, Eid and more.",
-};
+}, photo("hero-zanzibar"));
 
 /* What a Muslim traveller actually has to ask about. Each is something to
    arrange per booking, so none of it claims a certification the operator has

@@ -7,12 +7,14 @@ import { Collapse, FilterGrid } from "@/components/ui";
 import { content } from "@/lib/content";
 import { routes, zones } from "@/lib/routes";
 import { toursOfKind } from "@/lib/tours";
+import { withSeo } from "@/lib/seo";
+import { photo } from "@/lib/photos";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/kilimanjaro", {
   title: "Climbing Kilimanjaro",
   description:
     "Every Kilimanjaro and Mount Meru package, private or group, with day-by-day itineraries and a price for every group size.",
-};
+}, photo("hero-kilimanjaro"));
 
 export default function KilimanjaroPage() {
   const list = toursOfKind("kili", "meru", "group");
@@ -29,7 +31,7 @@ export default function KilimanjaroPage() {
       </PhotoHero>
 
       <Section id="packages">
-        <FilterGrid
+        <FilterGrid heading="Kilimanjaro routes"
           label="Filter climbs"
           items={items}
           filters={[

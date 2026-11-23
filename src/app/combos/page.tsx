@@ -6,11 +6,13 @@ import { Collapse, FilterGrid } from "@/components/ui";
 import { comboNotes } from "@/lib/combos";
 import { content } from "@/lib/content";
 import { toursOfKind } from "@/lib/tours";
+import { withSeo } from "@/lib/seo";
+import { photo } from "@/lib/photos";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSeo("/combos", {
   title: "Combo trips",
   description: "Kilimanjaro, the northern circuit and Zanzibar on one booking, with the mountain first.",
-};
+}, photo("hero-combos"));
 
 export default function CombosPage() {
   return (
@@ -21,7 +23,7 @@ export default function CombosPage() {
         </PageIntro>
       </PhotoHero>
       <Section>
-        <FilterGrid items={tourItems(toursOfKind("combo"))} filters={[]} initial={6} />
+        <FilterGrid heading="Combo trips" items={tourItems(toursOfKind("combo"))} filters={[]} initial={6} />
       </Section>
       <Section tone="frost" id="faq">
         <div className="mx-auto max-w-4xl">

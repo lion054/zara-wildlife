@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withSeo } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTour, tourPath } from "@/lib/tours";
@@ -28,10 +29,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const route = getRoute(slug);
   if (!route) return { title: "Route not found" };
-  return {
+  return withSeo(`/kilimanjaro/${slug}`, {
     title: `${route.name} — ${route.days} days`,
     description: route.summary,
-  };
+  });
 }
 
 export default async function RoutePage({

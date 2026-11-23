@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withSeo } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,13 +10,14 @@ import { site } from "@/lib/site";
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await getPost((await params).slug);
+  const { slug } = await params;
+  const post = await getPost(slug);
   if (!post) return {};
-  return {
-    title: post.title,
-    description: post.excerpt,
-    openGraph: { title: post.title, description: post.excerpt, type: "article", publishedTime: post.date },
-  };
+  return withSeo(
+    `/blog/${slug}`,
+    { title: post.title, description: post.excerpt, openGraph: { type: "article", publishedTime: post.date } },
+    post.image ? { src: post.image, alt: post.imageAlt ?? post.title } : null,
+  );
 }
 
 export default async function PostPage({ params }: Props) {
@@ -51,6 +53,7 @@ export default async function PostPage({ params }: Props) {
             alt={post.imageAlt ?? ""}
             width={1200}
             height={700}
+            sizes="(min-width: 768px) 768px, 100vw"
             priority
             className="mt-8 w-full rounded-[20px] object-cover"
           />
