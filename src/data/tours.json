@@ -4123,7 +4123,7 @@
    "Mti Mkubwa Camp",
    "Shira Camp 2"
   ],
-  "from": null,
+  "from": 2022,
   "overview": [
    "Embark on an unforgettable adventure climbing Kilimanjaro via the Lemosho Route. Your journey begins with a warm welcome at Kilimanjaro International Airport, followed by a transfer to your hotel, where you’ll receive a briefing from our experienced guides. Enjoy the hotel’s amenities, including a pool, garden, bar, and restaurant, for a comfortable start.",
    "The trek starts with a drive to Lemosho Park Gate and a hike through lush forest trails to Mti Mkubwa Camp. Over the next few days, you’ll ascend through stunning landscapes, including Shira 1 and Shira 2 camps, Lava Tower, and the Barranco Wall. Each day presents new challenges and incredible views, culminating in the summit attempt to Uhuru Peak.",
@@ -4269,7 +4269,12 @@
   ],
   "accommodation": [],
   "sections": [],
-  "ladder": [],
+  "ladder": [
+   {
+    "size": "Per person, any group size",
+    "price": 2022
+   }
+  ],
   "included": [
    {
     "text": "Two nights accommodation at the hotel (before and after the climb) (First night includes breakfast; Last night includes dinner and breakfast)",
