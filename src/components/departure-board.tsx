@@ -34,7 +34,7 @@ const FEW = 4;
 
 /**
  * The group departures board: route chips on top; "When would you like to climb?" with the years and the months that have
- * trips (rainy months marked); "Choose your departure" with how many are climbing, then the departures by month.
+ * every month (rainy months marked); "Choose your departure" with how many are climbing, then the departures by month.
  */
 /** Kilimanjaro's wet months: the long rains (April, May) and the short rains (November). */
 const RAINY = new Set([4, 5, 11]);
@@ -47,14 +47,21 @@ export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; d
   const [climbers, setClimbers] = useState(2);
 
   const forRoute = useMemo(() => departures.filter((d) => !route || d.routeKey === route), [departures, route]);
-  // Years and months that have trips (for the route picked): a month with none is not offered at all.
-  const years = useMemo(() => [...new Set(forRoute.map((d) => d.start.slice(0, 4)))].sort(), [forRoute]);
+  // Show every month in the upcoming calendar range, including months without published departures.
+  const years = useMemo(() => {
+    const firstYear = new Date().getFullYear();
+    const lastTripYear = Math.max(firstYear, ...forRoute.map((d) => Number(d.start.slice(0, 4))));
+    return Array.from({ length: lastTripYear - firstYear + 1 }, (_, i) => String(firstYear + i));
+  }, [forRoute]);
   const [yearPick, setYearPick] = useState<string | null>(null);
   const year = yearPick && years.includes(yearPick) ? yearPick : (years[0] ?? null);
   const months = useMemo(() => {
     const c = new Map<string, number>();
     for (const d of forRoute) if (d.start.startsWith(year ?? "")) c.set(monthOf(d.start), (c.get(monthOf(d.start)) ?? 0) + 1);
-    return [...c.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return Array.from({ length: 12 }, (_, i) => {
+      const m = `${year}-${String(i + 1).padStart(2, "0")}`;
+      return [m, c.get(m) ?? 0] as [string, number];
+    });
   }, [forRoute, year]);
   const shownMonth = month && months.some(([m]) => m === month) ? month : null;
 
@@ -136,6 +143,7 @@ export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; d
                 }`}
               >
                 {fmt(`${m}-01`, { month: "short" }).replace("Sept", "Sep")}
+                {n === 0 && <span className="ml-1 text-[0.65rem] font-medium opacity-75">No trips</span>}
                 {wet && <RainIcon />}
               </button>
             );
@@ -168,8 +176,13 @@ export function DepartureBoard({ routes, departures }: { routes: BoardRoute[]; d
         </div>
 
         <div className="mt-6" aria-live="polite">
-          {groups.length === 0 && (
-            <p className="rounded-2xl bg-frost px-6 py-10 text-center text-sm text-scree">No departures match. Try another route or month.</p>
+          {groups.length === 0 && shownMonth && (
+            <div className="relative overflow-hidden rounded-3xl bg-frost px-6 py-12 text-center ring-1 ring-mist sm:px-10">
+              <span aria-hidden="true" className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white text-2xl text-tanzanite ring-1 ring-mist">⌁</span>
+              <h3 className="mt-5 font-display text-2xl text-basalt">No trips available for these dates</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-scree">We don’t have group departures listed for {fmt(`${shownMonth}-01`, { month: "long", year: "numeric" })}. Try another month to find an open trip.</p>
+              <button type="button" onClick={() => setMonth(null)} className="mt-6 rounded-full bg-tanzanite px-5 py-3 text-sm font-semibold text-glacier transition hover:bg-basalt">Try another month</button>
+            </div>
           )}
           {groups.map(([m, list]) => (
             <section key={m} className="mb-10 last:mb-0" aria-label={fmt(`${m}-01`, { month: "long", year: "numeric" })}>
