@@ -213,7 +213,7 @@ export function MobileBookBar({
   cta?: string;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-mist bg-glacier/95 px-4 py-3 backdrop-blur lg:hidden">
+    <div data-bottom-bar="on" className="fixed inset-x-0 bottom-0 z-40 border-t border-mist bg-glacier/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
       <div className="mx-auto flex max-w-xl items-center justify-between gap-4">
         <p>
           <span className="label block text-scree">{price ? label : "Price"}</span>

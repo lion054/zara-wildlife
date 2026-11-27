@@ -4,7 +4,8 @@ import { EnquiryForm } from "@/components/enquiry-form";
 import { BookingForm } from "@/components/booking-form";
 import { Collapse, MobileBookBar, PhotoGrid, Tabs } from "@/components/ui";
 import { departuresFor } from "@/lib/departures";
-import { balanceDue, depositLabel, groupTerms } from "@/lib/group-terms";
+import { balanceDue, depositLabel, depositPerPerson, groupTerms, promoPrice } from "@/lib/group-terms";
+import { groupTitle } from "@/lib/route-facts";
 import { trekDays } from "@/lib/itinerary";
 import { ItineraryOverview } from "@/components/itinerary-overview";
 import { tanovaConfigured } from "@/lib/tanova";
@@ -65,7 +66,12 @@ export async function TourPage({ tour }: { tour: Tour }) {
   // A group climb's own payment terms (the deposit that holds a seat, when the rest is due), live from Tanova.
   const terms = tour.fixedDate && bookable ? await groupTerms(tour.tanovaId) : null;
   const nextOpen = departures.filter((d) => d.open).slice(0, 3);
-  const cta = tour.fixedDate ? "Reserve a seat" : bookable ? "Book now" : "Ask for a quote";
+  const hold = depositPerPerson(terms, tour.from);
+  const promo = promoPrice(terms, tour.from);
+  // Group climbs say what holds a seat today ("Book now · Pay $130"), like the price bar on every group date.
+  const cta = tour.fixedDate ? (hold ? `Book now · Pay $${hold}` : "Reserve a seat") : bookable ? "Book now" : "Ask for a quote";
+  // Group climbs are titled the way climbers search: "Kilimanjaro via Lemosho route – 7 days".
+  const heading = tour.kind === "group" ? groupTitle(tour) : displayTitle(tour);
   const meta = KIND[tour.kind];
   const related = tours.filter((t) => t.kind === tour.kind && t.key !== tour.key).slice(0, 3);
   const duration = tour.duration?.replace(/\s*\|\s*/g, " · ");
@@ -240,7 +246,7 @@ export async function TourPage({ tour }: { tour: Tour }) {
 
   const tabs = [
     { id: "overview", label: "Overview", content: overview },
-    ...(tour.days.length > 0 ? [{ id: "itinerary", label: `Itinerary · ${tour.days.length} days`, content: itinerary }] : []),
+    ...(tour.days.length > 0 ? [{ id: "itinerary", label: trek.length >= 3 ? `Itinerary · ${trek.length} days on the mountain` : "Itinerary", content: itinerary }] : []),
     ...(tour.included.length + tour.excluded.length > 0 ? [{ id: "included", label: "Included", content: included }] : []),
     ...(tour.accommodation.length > 0 ? [{ id: "stay", label: `Accommodation · ${tour.accommodation.length}`, content: stay }] : []),
     ...(tour.gallery.length > 0 ? [{ id: "photos", label: "Photos", content: gallery }] : []),
@@ -256,12 +262,12 @@ export async function TourPage({ tour }: { tour: Tour }) {
               {meta.back.label}
             </Link>
             <span aria-hidden="true"> / </span>
-            <span aria-current="page">{tour.title}</span>
+            <span aria-current="page">{tour.kind === "group" ? heading.replace(/^Kilimanjaro via /, "") : tour.title}</span>
           </nav>
           <div className="grid items-center gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
             <div>
               <Eyebrow>{meta.label}</Eyebrow>
-              <h1 className="font-display text-4xl md:text-5xl">{displayTitle(tour)}</h1>
+              <h1 className="font-display text-4xl leading-[1.05] md:text-5xl">{heading}</h1>
               {summary && <p className="mt-4 line-clamp-3 max-w-xl text-base leading-relaxed text-scree">{summary}</p>}
               <ul className="mt-5 flex flex-wrap gap-2 text-sm">
                 {duration && <li className="metric rounded-full bg-glacier px-4 py-1.5 ring-1 ring-mist">{duration}</li>}
@@ -271,8 +277,9 @@ export async function TourPage({ tour }: { tour: Tour }) {
                   </li>
                 )}
                 <li className="metric rounded-full bg-tanzanite px-4 py-1.5 text-glacier">
-                  {tour.from ? `From $${tour.from.toLocaleString()}` : "Price on request"}
+                  {tour.from ? `From $${(promo ?? tour.from).toLocaleString()}` : "Price on request"}
                 </li>
+                {hold ? <li className="rounded-full bg-brand px-4 py-1.5 font-semibold text-basalt">Reserve for ${hold} pp</li> : null}
               </ul>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="#enquire">{cta}</Button>
@@ -293,7 +300,15 @@ export async function TourPage({ tour }: { tour: Tour }) {
         <aside className="h-fit lg:sticky lg:top-6">
           <div className="rounded-3xl bg-glacier p-6 shadow-[0_24px_60px_-28px_rgba(43,44,16,0.4)] ring-1 ring-mist">
             <p className="label text-scree">{tour.ladder.length > 1 ? "From, per person" : "Price per person"}</p>
-            <p className="metric mt-1 text-4xl text-tanzanite">{tour.from ? `$${tour.from.toLocaleString()}` : "On request"}</p>
+            <p className="mt-1">
+              {promo && tour.from ? <s className="mr-2 text-lg text-scree">${tour.from.toLocaleString()}</s> : null}
+              <span className="metric text-4xl text-tanzanite">{tour.from ? `$${(promo ?? tour.from).toLocaleString()}` : "On request"}</span>
+            </p>
+            {hold ? (
+              <p className="mt-2 rounded-xl bg-brand/15 px-3 py-2 text-sm text-basalt">
+                <span className="font-semibold">${hold} per person</span> reserves your seat. The rest later, in any amounts.
+              </p>
+            ) : null}
             {tour.ladder.length > 1 && (
               <table className="mt-4 w-full text-sm">
                 <caption className="sr-only">Price per person by group size, US dollars</caption>
@@ -317,10 +332,10 @@ export async function TourPage({ tour }: { tour: Tour }) {
                   <ul className="mt-2 space-y-1.5 text-sm">
                     {nextOpen.map((d) => (
                       <li key={d.start} className="flex items-center justify-between gap-3">
-                        <a href={`?date=${d.start}#enquire`} className="text-basalt hover:text-tanzanite">
+                        <a href={`${tourPath(tour)}/${d.start}`} className="text-basalt hover:text-tanzanite">
                           {new Date(`${d.start}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                         </a>
-                        <span className="label text-scree">{d.seatsLeft !== null && d.seatsLeft <= 4 ? `${d.seatsLeft} left` : "Open"}</span>
+                        <span className="label text-scree">{d.seatsLeft !== null && d.seatsLeft <= 4 ? `${d.seatsLeft} left` : d.capacity !== null && d.seatsLeft !== null ? `${d.capacity - d.seatsLeft}/${d.capacity} reserved` : "Open"}</span>
                       </li>
                     ))}
                   </ul>
@@ -352,7 +367,9 @@ export async function TourPage({ tour }: { tour: Tour }) {
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="label text-brand">{tour.fixedDate ? "Group departure" : bookable ? "Book online" : "Ask us"}</p>
-            <h2 className="mt-3 font-display text-3xl md:text-4xl">{displayTitle(tour)}</h2>
+            <h2 className="mt-3 font-display text-3xl md:text-4xl">
+              {tour.fixedDate ? "Reserve your seats" : bookable ? "Book this trip" : "Tell us your dates"}
+            </h2>
             <p className="mt-4 text-base leading-relaxed text-glacier/90">
               {bookable
                 ? tour.fixedDate
@@ -409,7 +426,7 @@ export async function TourPage({ tour }: { tour: Tour }) {
         </Section>
       )}
 
-      <MobileBookBar price={tour.from} cta={cta} />
+      <MobileBookBar price={promo ?? tour.from} label={hold ? "Per person" : undefined} cta={cta} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
     </>
   );

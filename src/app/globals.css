@@ -170,6 +170,28 @@
 }
 
 @layer components {
+  /* The chat bubble (Ask Zita): always bottom right, clear of the iPhone home bar, and lifted above any sticky
+     booking bar along the bottom of the screen so the two never cover each other. On phones it shrinks to the
+     round face alone. */
+  .fab {
+    position: fixed;
+    z-index: 45;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    transition: bottom 0.2s ease, transform 0.2s ease;
+  }
+  @media (max-width: 1023.98px) {
+    body:has([data-bottom-bar="on"]) .fab {
+      bottom: calc(5.25rem + env(safe-area-inset-bottom));
+    }
+  }
+  body:has([data-bottom-bar="all"]) .fab {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  }
+  @media (max-width: 639.98px) {
+    .fab { padding: 0.25rem !important; }
+    .fab .fab-text { display: none; }
+  }
   /* A climb is a data set. Altitudes, gradients, hours and day numbers all
      sit in mono so they line up column to column and read as measurements.
      This survived the reskin unchanged — it is the one thing here that is

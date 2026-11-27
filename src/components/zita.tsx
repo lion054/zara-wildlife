@@ -183,11 +183,11 @@ export function Zita({ initialOpen = false, initialQuestion = "" }: { initialOpe
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full bg-basalt py-2 pl-2 pr-5 text-glacier shadow-lift transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="fab flex items-center gap-3 rounded-full bg-basalt py-2 pl-2 pr-5 text-glacier shadow-lift transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           aria-label="Ask Zita: trips, prices, dates"
         >
           <ZitaFace size={40} />
-          <span className="text-left leading-tight">
+          <span className="fab-text text-left leading-tight">
             <span className="block text-[15px] font-semibold">Ask Zita</span>
             <span className="block text-[12px] opacity-75">Trips, prices, dates</span>
           </span>

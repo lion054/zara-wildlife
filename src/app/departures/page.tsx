@@ -6,7 +6,9 @@ import { PhotoHero, Section } from "@/components/primitives";
 import { SectionTitle } from "@/components/tsoka";
 import { FilterGrid } from "@/components/ui";
 import { upcomingGroupDepartures } from "@/lib/departures";
-import { balanceDue, depositLabel, depositPerPerson, groupTerms } from "@/lib/group-terms";
+import { DepositSteps, IncludesList } from "@/components/group-sections";
+import { depositPerPerson, groupTerms, promoPrice } from "@/lib/group-terms";
+import { groupTitle, routeHighlights } from "@/lib/route-facts";
 import { toursOfKind } from "@/lib/tours";
 import { withSeo } from "@/lib/seo";
 import { photo } from "@/lib/photos";
@@ -38,10 +40,11 @@ export default async function DeparturesPage() {
   const routes: BoardRoute[] = groupTours.map((t, i) => ({
     key: t.key,
     name: t.title.split(/\s+Group Departure/)[0],
+    title: groupTitle(t),
     days: parseInt(t.duration ?? "", 10) || null,
-    startsAt: t.places?.[0] ?? null,
     color: ROUTE_COLORS[t.key] ?? FALLBACK[i % FALLBACK.length],
-    photo: t.hero ?? null,
+    highlights: routeHighlights(t),
+    tourKey: `${t.kind}:${t.key}`,
   }));
   // Each climb's payment terms, live from Tanova: what holds a seat, and when the rest is due.
   const termsByKey = new Map(await Promise.all(groupTours.map(async (t) => [t.key, await groupTerms(t.tanovaId)] as const)));
@@ -52,6 +55,8 @@ export default async function DeparturesPage() {
     start: d.start,
     end: d.end,
     price: d.price,
+    promo: promoPrice(termsByKey.get(d.tourKey) ?? null, d.price),
+    promoLabel: termsByKey.get(d.tourKey)?.promo?.label ?? null,
     capacity: d.capacity,
     seatsLeft: d.seatsLeft,
     open: d.open,
@@ -66,26 +71,10 @@ export default async function DeparturesPage() {
     { k: "Routes", v: String(new Set(list.map((d) => d.tourKey)).size), s: "on fixed dates" },
     { k: "Open dates", v: String(list.filter((d) => d.open).length), s: "12 seats each" },
     terms && lowestHold
-      ? { k: "Hold a seat from", v: `$${lowestHold.toLocaleString()}`, s: `a ${depositLabel(terms)} deposit, the rest later` }
+      ? { k: "Reserve for", v: `$${lowestHold.toLocaleString()}`, s: "per person today" }
       : { k: "From", v: Number.isFinite(lowest) ? `$${lowest.toLocaleString()}` : "On request", s: "per person" },
   ];
-  const steps = terms
-    ? [
-        { n: "01", t: "Pick your date", b: "Choose a route and a departure with seats. You see the price per person and the seats left before you commit." },
-        {
-          n: "02",
-          t: `Hold your seat with ${depositLabel(terms)}`,
-          b: `Pay a ${depositLabel(terms)} deposit online and your seat is yours, with a booking code straight away. Prefer to pay in full? You can.`,
-        },
-        {
-          n: "03",
-          t: "Pay the rest your way",
-          b: terms.topups
-            ? `Top up any amount, whenever it suits you, from your booking's payment link. The balance is due ${balanceDue(terms)}.`
-            : `The balance is due ${balanceDue(terms)}, from your booking's payment link.`,
-        },
-      ]
-    : null;
+  const minimum = terms?.minimum ?? 4;
 
   return (
     <>
@@ -111,7 +100,7 @@ export default async function DeparturesPage() {
 
       <Section>
         {list.length > 0 ? (
-          <DepartureBoard routes={routes} departures={departures} />
+          <DepartureBoard routes={routes} departures={departures} minimum={minimum} />
         ) : (
           <div className="mx-auto max-w-xl rounded-3xl bg-frost p-8 text-center">
             <h2 className="font-display text-2xl">New dates are being added.</h2>
@@ -127,30 +116,10 @@ export default async function DeparturesPage() {
           </div>
         )}
 
-        {steps && (
-          <section className="mt-20 overflow-hidden rounded-[28px] bg-basalt text-glacier on-dark" aria-labelledby="how-booking">
-            <div className="grid gap-10 p-8 md:p-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-14">
-              <div>
-                <p className="label text-brand">How booking works</p>
-                <h2 id="how-booking" className="mt-3 font-display text-3xl md:text-4xl">
-                  {terms ? `${depositLabel(terms)} today.` : ""} The rest when it suits you.
-                </h2>
-                <p className="mt-4 text-sm leading-relaxed text-glacier/75">
-                  Your booking code arrives by email the moment your seat is held. The full details are in our{" "}
-                  <Link href="/terms" className="underline underline-offset-4">booking terms</Link>.
-                </p>
-              </div>
-              <ol className="grid gap-4 md:grid-cols-3">
-                {steps.map((s) => (
-                  <li key={s.n} className="rounded-2xl border border-glacier/10 bg-glacier/[0.04] p-6">
-                    <span className="font-mono text-sm text-brand">{s.n}</span>
-                    <h3 className="mt-3 font-display text-xl">{s.t}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-glacier/75">{s.b}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
+        {terms && (
+          <div className="mt-20">
+            <DepositSteps terms={terms} />
+          </div>
         )}
 
         {list.length > 0 && (
@@ -172,11 +141,17 @@ export default async function DeparturesPage() {
           </div>
         )}
 
+        {groupTours[0] && (
+          <div className="mt-20">
+            <IncludesList tour={groupTours[0]} />
+          </div>
+        )}
+
         <div className="mt-20 grid gap-4 md:grid-cols-3">
           {[
             { big: "8–12", unit: "climbers", t: "How a group climb works", b: "Two lead guides and a full crew for every group. You share the crew cost, which is why it comes in below a private climb." },
             { big: "$0", unit: "single supplement", t: "Solo travellers welcome", b: "Your own tent at no extra cost; share only if you want to." },
-            { big: "4", unit: "climbers to run", t: "If it does not fill", b: "Departures run from four climbers. Below that we offer you the next date or a full refund, decided 45 days out." },
+            { big: String(minimum), unit: "climbers to run", t: "If it does not fill", b: `Departures run from ${minimum} climbers. Below that we offer you the next date or a full refund, decided 45 days out.` },
           ].map((c) => (
             <article key={c.t} className="rounded-3xl bg-frost p-7 ring-1 ring-mist">
               <p className="flex items-baseline gap-2">

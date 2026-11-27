@@ -149,6 +149,8 @@ export const nav: NavItem[] = [
       cta: "See the calendar",
     },
   },
+  // Group climbs are the main thing to sell: a top-level link, not only an entry inside Trekking.
+  { label: "Group climbs", href: "/departures" },
   { label: "Combo", href: "/combos" },
   { label: "Day trips", href: "/day-trips" },
   { label: "Zanzibar", href: "/zanzibar" },

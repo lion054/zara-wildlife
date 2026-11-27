@@ -37,11 +37,12 @@ export function BookBar({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-40 border-t border-mist bg-glacier/95 px-4 py-3 backdrop-blur transition-transform duration-200 lg:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-mist bg-glacier/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur transition-transform duration-200 lg:hidden ${
         show ? "translate-y-0" : "translate-y-full"
       }`}
       /* Inert while off-screen so it is not a keyboard trap above the fold. */
       aria-hidden={!show}
+      data-bottom-bar={show ? "on" : "off"}
     >
       <div className="flex items-center gap-4">
         <div className="min-w-0">

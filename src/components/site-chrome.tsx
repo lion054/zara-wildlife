@@ -147,7 +147,7 @@ export function SiteHeader({ hasBlog = false, popular = {} }: { hasBlog?: boolea
                   <Link
                     href={item.href}
                     aria-current={pathname === item.href ? "page" : undefined}
-                    className={`whitespace-nowrap rounded-full px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-frost hover:text-tanzanite ${
+                    className={`whitespace-nowrap rounded-full px-2 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] 2xl:px-2.5 2xl:tracking-[0.1em] transition-colors hover:bg-frost hover:text-tanzanite ${
                       current ? "bg-frost text-tanzanite" : "text-basalt"
                     } ${item.children ? "pr-1.5" : ""}`}
                   >
@@ -184,7 +184,7 @@ export function SiteHeader({ hasBlog = false, popular = {} }: { hasBlog?: boolea
 
           <Link
             href="/plan"
-            className="ml-auto hidden shrink-0 rounded-full bg-brand px-7 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-basalt transition-all sm:inline-flex hover:bg-brand-bright hover:shadow-[0_8px_28px_-6px_rgba(240,159,15,0.65)] xl:ml-0"
+            className="ml-auto hidden shrink-0 rounded-full bg-brand px-5 py-3 text-xs 2xl:px-7 font-semibold uppercase tracking-[0.12em] text-basalt transition-all sm:inline-flex hover:bg-brand-bright hover:shadow-[0_8px_28px_-6px_rgba(240,159,15,0.65)] xl:ml-0"
           >
             Plan my trip
           </Link>

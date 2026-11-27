@@ -72,7 +72,16 @@ export async function createBooking(tourKey: string, data: FormData): Promise<Bo
         last_name: last,
         email,
         phone: str(data.get("phone")) || undefined,
-        notes: [str(data.get("country")) && `Country: ${str(data.get("country"))}`, str(data.get("notes"))].filter(Boolean).join("\n") || undefined,
+        // What the reserve form asks besides the booking itself goes to the office as notes on the booking.
+        notes:
+          [
+            str(data.get("country")) && `Country: ${str(data.get("country"))}`,
+            str(data.get("safari")) === "yes" && "Would like to add a safari after the climb.",
+            str(data.get("contact_pref")) && `Prefers to be contacted by ${str(data.get("contact_pref"))}.`,
+            str(data.get("notes")),
+          ]
+            .filter(Boolean)
+            .join("\n") || undefined,
       },
     });
     const b = res.data;

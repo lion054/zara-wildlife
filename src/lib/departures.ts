@@ -45,6 +45,9 @@ export async function departuresFor(tour: Tour, horizon = 365): Promise<Departur
       tanova<{ data: { days: Day[] } }>(`/services/tours/${tour.tanovaId}/departures?from=${a}&to=${b}`, { revalidate: 60 });
     const pages = await Promise.all(windows.map(([a, b]) => get(a, b).catch(() => get(a, b))));
     const nights = parseInt(tour.duration ?? "", 10) || null;
+    // The departure date is day 1 of the itinerary (arrival in Moshi); it ends on the itinerary's last day (flying home),
+    // so the dates shown match the dated day-by-day plan and the flights a climber books.
+    const span = tour.days.length || nights;
     return pages
       .flatMap((p) => p.data.days)
       .map((d) => ({
@@ -53,7 +56,7 @@ export async function departuresFor(tour: Tour, horizon = 365): Promise<Departur
         title: tour.title,
         href: tourPath(tour),
         start: d.date,
-        end: nights ? addDays(d.date, nights - 1) : null,
+        end: span ? addDays(d.date, span - 1) : null,
         days: nights,
         price: d.price ?? tour.from,
         capacity: d.capacity,

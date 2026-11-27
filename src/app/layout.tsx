@@ -49,6 +49,8 @@ export const metadata: Metadata = {
    Next moved themeColor onto the viewport export. */
 export const viewport: Viewport = {
   themeColor: "#566a1b",
+  // Lets the chat bubble and the sticky booking bars sit clear of the iPhone home bar (env(safe-area-inset-*)).
+  viewportFit: "cover",
 };
 
 const schema = {
