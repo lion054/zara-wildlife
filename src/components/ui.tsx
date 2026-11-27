@@ -46,7 +46,7 @@ export function Tabs({
       <div
         role="tablist"
         aria-label={label}
-        className="-mx-1 flex gap-1 overflow-x-auto border-b border-mist px-1 pb-px [scrollbar-width:none]"
+        className="-mx-1 flex gap-1 overflow-x-auto border-b border-mist px-1 pb-px pt-1 [scrollbar-width:none]"
       >
         {tabs.map((t, i) => {
           const on = t.id === active;

@@ -97,7 +97,7 @@ export function DepartureBoard({ routes, departures, minimum = 4 }: { routes: Bo
     <div>
       {/* Routes: sticky so they stay at hand while scrolling the list. */}
       <div className="sticky top-0 z-20 -mx-5 border-b border-mist/70 bg-glacier/90 px-5 py-3 backdrop-blur-md md:-mx-6 md:px-6 md:py-4">
-        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filter by route">
+        <div className="-mx-1 -my-1 flex snap-x scroll-px-1 gap-2 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filter by route">
           <button type="button" onClick={() => setRoute(null)} aria-pressed={!route} className={chip(!route)}>
             All routes <span className="text-[0.7rem] tabular-nums opacity-60">{departures.length}</span>
           </button>
@@ -144,7 +144,7 @@ export function DepartureBoard({ routes, departures, minimum = 4 }: { routes: Bo
         {/* Twelve months in one row on wide screens; a sideways scroll on phones. */}
         <div
           ref={strip}
-          className="-mx-5 mt-4 flex snap-x gap-2 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:px-0 lg:grid lg:grid-cols-12 lg:overflow-visible [&::-webkit-scrollbar]:hidden"
+          className="-mx-5 mt-3 flex snap-x scroll-px-5 gap-2 overflow-x-auto px-5 pb-2 pt-1 [scrollbar-width:none] md:-mx-1 md:scroll-px-1 md:px-1 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-12 lg:overflow-visible [&::-webkit-scrollbar]:hidden"
           role="group"
           aria-label={`Months of ${year}`}
         >

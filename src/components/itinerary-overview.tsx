@@ -188,7 +188,7 @@ export function ItineraryOverview({ days, startDate }: { days: TrekDay[]; startD
       </div>
 
       {/* Day cards */}
-      <ol className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 [scrollbar-width:thin]" aria-label="Trekking days">
+      <ol className="-mx-1.5 mt-3 flex snap-x snap-mandatory scroll-px-1.5 gap-3 overflow-x-auto px-1.5 pb-3 pt-1.5 [scrollbar-width:thin]" aria-label="Trekking days">
         {days.map((d) => {
           const on = d.n === sel;
           const z = zoneOf(d.end);

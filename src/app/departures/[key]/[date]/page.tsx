@@ -8,6 +8,7 @@ import { HighlightIcon } from "@/components/highlight-icon";
 import { ItineraryOverview } from "@/components/itinerary-overview";
 import { Section } from "@/components/primitives";
 import { ReserveButton } from "@/components/reserve-dialog";
+import { RevealBar } from "@/components/reveal-bar";
 import { TrustStrip } from "@/components/trust-strip";
 import { departuresFor } from "@/lib/departures";
 import { depositPerPerson, groupTerms, promoPrice } from "@/lib/group-terms";
@@ -119,29 +120,34 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
-      <div className="bg-frost px-5 pb-10 pt-8 md:px-6 md:pb-14 md:pt-12">
+      <div className="bg-frost px-5 pb-10 pt-6 md:px-6 md:pb-14 md:pt-12">
         <div className="mx-auto max-w-6xl">
-          <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap gap-x-1.5 text-xs uppercase tracking-[0.12em] text-scree">
+          <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap gap-x-1.5 text-[0.7rem] uppercase tracking-[0.12em] text-scree md:mb-5 md:text-xs">
             <Link href="/departures" className="text-tanzanite hover:underline">Group climbs</Link>
             <span aria-hidden="true">/</span>
-            <Link href={tourPath(tour)} className="text-tanzanite hover:underline">{title.replace(/^Kilimanjaro via /, "")}</Link>
-            <span aria-hidden="true">/</span>
+            <Link href={tourPath(tour)} className="hidden text-tanzanite hover:underline sm:inline">{title.replace(/^Kilimanjaro via /, "")}</Link>
+            <span aria-hidden="true" className="hidden sm:inline">/</span>
             <span aria-current="page">{fmt(dep.start, { day: "numeric", month: "short", year: "numeric" })}</span>
           </nav>
 
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-12">
             <div className="min-w-0">
               <p className="label text-tanzanite">Group climb</p>
-              <h1 className="mt-2 font-display text-[2.1rem] leading-[1.05] text-basalt md:text-5xl">{title}</h1>
+              <h1 className="mt-2 font-display text-[2rem] leading-[1.05] text-basalt sm:text-[2.5rem] md:text-5xl">{title}</h1>
               <p className="mt-3 text-lg font-semibold text-basalt">{span(dep.start, dep.end)}</p>
               <div className="mt-4">
                 <DepartureTags d={d} minimum={minimum} />
               </div>
+              {tour.hero && (
+                <div className="relative mt-6 aspect-[16/10] overflow-hidden rounded-3xl lg:hidden">
+                  <Image src={tour.hero.src} alt="" fill priority sizes="(min-width: 1024px) 1px, 100vw" className="object-cover" />
+                </div>
+              )}
 
               {highlights.length > 0 && (
                 <ul className="mt-6 space-y-3">
                   {highlights.map((h) => (
-                    <li key={h.text} className="flex items-center gap-3 text-base text-basalt">
+                    <li key={h.text} className="flex items-center gap-3 text-[0.95rem] text-basalt md:text-base">
                       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-glacier text-tanzanite ring-1 ring-mist">
                         <HighlightIcon icon={h.icon} />
                       </span>
@@ -151,7 +157,7 @@ export default async function Page({ params }: Props) {
                 </ul>
               )}
 
-              <div className="mt-7 rounded-3xl bg-glacier p-5 ring-1 ring-mist md:p-6">
+              <div id="book-card" className="mt-7 rounded-3xl bg-glacier p-5 ring-1 ring-mist md:p-6">
                 {dep.capacity !== null && s.taken !== null && (
                   <div>
                     <p className="flex items-baseline justify-between text-sm">
@@ -197,7 +203,7 @@ export default async function Page({ params }: Props) {
 
             {tour.hero && (
               <div className="relative hidden overflow-hidden rounded-[28px] lg:block">
-                <Image src={tour.hero.src} alt="" fill priority sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+                <Image src={tour.hero.src} alt="" fill sizes="(min-width: 1024px) 45vw, 1px" className="object-cover" />
               </div>
             )}
           </div>
@@ -205,7 +211,7 @@ export default async function Page({ params }: Props) {
       </div>
 
       <Section>
-        <div className="mx-auto max-w-5xl space-y-20">
+        <div className="mx-auto max-w-5xl space-y-14 md:space-y-20">
           {trek.length >= 3 && (
             <ItineraryOverview days={trek} startDate={dep.start} />
           )}
@@ -241,8 +247,8 @@ export default async function Page({ params }: Props) {
         </div>
       </Section>
 
-      {/* The price bar: always at hand, on every screen size. */}
-      <div data-bottom-bar="all" className="fixed inset-x-0 bottom-0 z-40 border-t border-mist bg-glacier/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
+      {/* The price bar: at hand on every screen size once the booking card has scrolled away. */}
+      <RevealBar after="book-card">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="hidden truncate text-sm font-semibold text-basalt md:block">
@@ -254,7 +260,7 @@ export default async function Page({ params }: Props) {
           </div>
           {reserve("shrink-0 rounded-full bg-brand px-5 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-basalt transition hover:bg-brand-bright md:px-7")}
         </div>
-      </div>
+      </RevealBar>
       <div className="h-20" aria-hidden="true" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
     </>

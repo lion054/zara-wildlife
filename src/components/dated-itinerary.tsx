@@ -41,7 +41,10 @@ export function DatedItinerary({ start, days }: { start: string; days: TimelineD
       <ol className="relative mt-8 space-y-0 border-l-2 border-mist pl-6 md:ml-24 md:pl-8">
         {days.map((d) => {
           const date = dateOf(start, d.n);
-          const stats = Object.entries(d.stats).filter(([, v]) => v);
+          // Short labels so a day's facts sit on one or two lines on a phone; "5, 895 m" in the source reads "5,895 m".
+          const stats = Object.entries(d.stats)
+            .filter(([, v]) => v)
+            .map(([k, v]) => [/distance/i.test(k) ? "Distance" : /time/i.test(k) ? "Time" : /altitude|elevation/i.test(k) ? "Altitude" : k, v.replace(/(\d),\s+(\d{3})/g, "$1,$2")] as const);
           return (
             <li key={d.n} id={`day-${d.n}`} className="relative scroll-mt-28 pb-8 last:pb-0">
               <span className="absolute -left-[calc(1.5rem+7px)] top-1.5 h-3 w-3 rounded-full bg-tanzanite ring-4 ring-glacier md:-left-[calc(2rem+7px)]" aria-hidden="true" />
