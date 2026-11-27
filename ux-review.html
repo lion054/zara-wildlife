@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Page-by-page UX and UI review of the Tanzania Wildlife Adventures rebuild, with prioritised fixes and an inventory of unused photography.">
+<title>TWA — page-by-page UX review</title>
+<style>
+  /* --- minimal reset (the hosted version got this from its wrapper) --- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; }
+  img, svg { max-width: 100%; height: auto; display: block; }
+  table { border-collapse: collapse; }
+
+  :root {
+    --paper:      #fbfbf8;
+    --panel:      #f3f4ee;
+    --ink:        #101820;
+    --ink-soft:   #47514c;
+    --ink-faint:  #78827c;
+    --rule:       #dfe2d8;
+    --rule-soft:  #e9ebe3;
+
+    --forest:     #0a7024;
+    --lime:       #9dab1f;
+    --amber:      #b25c0c;
+    --red:        #b3261e;
+    --slate:      #4a5568;
+
+    --sev-crit:   var(--red);
+    --sev-high:   var(--amber);
+    --sev-med:    var(--slate);
+    --sev-ok:     var(--forest);
+
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans:  ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+    --measure: 74ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:     #0d1210;
+      --panel:     #151b18;
+      --ink:       #eef1ea;
+      --ink-soft:  #a8b1a9;
+      --ink-faint: #7c857e;
+      --rule:      #29312c;
+      --rule-soft: #1e2521;
+
+      --forest:    #6cc17f;
+      --lime:      #c3d24a;
+      --amber:     #e8963f;
+      --red:       #f08a80;
+      --slate:     #93a0ae;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #0d1210;
+    --panel:     #151b18;
+    --ink:       #eef1ea;
+    --ink-soft:  #a8b1a9;
+    --ink-faint: #7c857e;
+    --rule:      #29312c;
+    --rule-soft: #1e2521;
+    --forest:    #6cc17f;
+    --lime:      #c3d24a;
+    --amber:     #e8963f;
+    --red:       #f08a80;
+    --slate:     #93a0ae;
+  }
+  :root[data-theme="light"] {
+    --paper:     #fbfbf8;
+    --panel:     #f3f4ee;
+    --ink:       #101820;
+    --ink-soft:  #47514c;
+    --ink-faint: #78827c;
+    --rule:      #dfe2d8;
+    --rule-soft: #e9ebe3;
+    --forest:    #0a7024;
+    --lime:      #9dab1f;
+    --amber:     #b25c0c;
+    --red:       #b3261e;
+    --slate:     #4a5568;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.1rem, 4vw, 2.5rem) 6rem;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--serif);
+    color: var(--ink);
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0;
+    line-height: 1.15;
+  }
+  h1 { font-size: clamp(2rem, 5.2vw, 3.1rem); letter-spacing: -0.015em; }
+  h2 { font-size: clamp(1.5rem, 3.2vw, 2rem); letter-spacing: -0.01em; }
+  h3 { font-size: 1.18rem; }
+  h4 { font-size: 1rem; font-family: var(--sans); font-weight: 650; }
+
+  p { margin: 0; max-width: var(--measure); }
+  a { color: var(--forest); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--forest);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--panel);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---- masthead ---- */
+  .masthead { display: flex; flex-direction: column; gap: 1.1rem; }
+  .masthead .lede { font-size: 1.12rem; max-width: 62ch; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.6rem;
+    font-family: var(--mono); font-size: 0.75rem;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--rule);
+    padding-top: 0.9rem;
+  }
+
+  /* ---- tally ---- */
+  .tally {
+    display: grid; gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 2.6rem;
+  }
+  .tally div { background: var(--paper); padding: 1rem 1.1rem; }
+  .tally .n {
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 1.9rem; color: var(--ink); line-height: 1; display: block;
+  }
+  .tally .k {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-faint); margin-top: 0.45rem; display: block;
+  }
+
+  /* ---- sections ---- */
+  section { margin-top: clamp(3rem, 7vw, 4.5rem); }
+  .sec-head { border-top: 2px solid var(--ink); padding-top: 1rem; margin-bottom: 1.8rem; }
+  .sec-head p { margin-top: 0.7rem; }
+
+  /* ---- page block ---- */
+  .page {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+    margin-top: 2.4rem;
+  }
+  .page-head {
+    display: flex; flex-wrap: wrap; align-items: baseline;
+    gap: 0.5rem 1rem; margin-bottom: 0.35rem;
+  }
+  .route {
+    font-family: var(--mono); font-size: 0.82rem;
+    color: var(--forest); background: var(--panel);
+    padding: 0.15rem 0.5rem; border-radius: 3px;
+  }
+  .verdict { margin: 0.7rem 0 1.3rem; font-style: italic; font-family: var(--serif); font-size: 1.05rem; color: var(--ink); max-width: 62ch; }
+
+  /* ---- findings ---- */
+  ul.findings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.05rem; }
+  ul.findings > li { display: grid; grid-template-columns: 6.6rem 1fr; gap: 0.9rem; align-items: start; }
+  @media (max-width: 34rem) {
+    ul.findings > li { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+  .sev {
+    font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em;
+    text-transform: uppercase; line-height: 1.35;
+    display: inline-flex; align-items: flex-start; gap: 0.35rem;
+    padding-top: 0.24rem;
+  }
+  .sev::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor; flex: none; margin-top: 0.32rem;
+  }
+  .sev.crit { color: var(--sev-crit); }
+  .sev.high { color: var(--sev-high); }
+  .sev.med  { color: var(--sev-med); }
+  .sev.ok   { color: var(--sev-ok); }
+  .findings b { color: var(--ink); font-weight: 650; }
+  .findings .fix {
+    display: block; margin-top: 0.3rem; font-size: 0.92rem; color: var(--ink-faint);
+  }
+  .findings .fix::before { content: "Fix — "; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ---- callout ---- */
+  .callout {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: 1.2rem 1.35rem;
+    margin-top: 1.6rem;
+  }
+  .callout h4 { margin-bottom: 0.5rem; }
+  .callout p + p { margin-top: 0.6rem; }
+
+  /* ---- table ---- */
+  .scroll { overflow-x: auto; margin-top: 1.4rem; border: 1px solid var(--rule); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; min-width: 34rem; }
+  th, td { text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-faint);
+    background: var(--panel); border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.file { font-family: var(--mono); font-size: 0.8rem; color: var(--ink); }
+  .n-col { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+  /* ---- priority ---- */
+  ol.prio { margin: 1.4rem 0 0; padding: 0; list-style: none; counter-reset: p; display: flex; flex-direction: column; gap: 1.4rem; }
+  ol.prio > li { counter-increment: p; display: grid; grid-template-columns: 2.4rem 1fr; gap: 1rem; }
+  ol.prio > li::before {
+    content: "P" counter(p, decimal-leading-zero);
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint);
+    padding-top: 0.2rem;
+  }
+  ol.prio h4 { margin-bottom: 0.35rem; }
+  ol.prio ul { margin: 0.5rem 0 0; padding-left: 1.1rem; }
+  ol.prio li li { margin-bottom: 0.25rem; }
+
+  footer {
+    margin-top: 4.5rem; border-top: 1px solid var(--rule); padding-top: 1.2rem;
+    font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint);
+  }
+
+  /* --- theme toggle (standalone only; the hosted page uses the viewer's) --- */
+  .theme-toggle {
+    position: fixed; top: 1rem; right: 1rem; z-index: 20;
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: var(--panel); color: var(--ink-soft);
+    border: 1px solid var(--rule); border-radius: 999px;
+    padding: 0.45rem 0.85rem; cursor: pointer;
+    font-family: var(--mono); font-size: 0.68rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .theme-toggle:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; }
+  .theme-toggle::before {
+    content: ""; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--lime); flex: none;
+  }
+  @media print {
+    .theme-toggle { display: none; }
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    section, .page, ul.findings > li { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<button class="theme-toggle" type="button" id="themeToggle" aria-pressed="false"><span id="themeLabel">Dark</span></button>
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="eyebrow">UX &amp; UI review</span>
+    <h1>Tanzania Wildlife Adventures — page&nbsp;by&nbsp;page</h1>
+    <p class="lede">
+      The content and the information design are already ahead of the live site.
+      What holds this build back from a 2026 standard is not taste — it is that
+      the site has <strong>no photography</strong> and that its
+      <strong>conversion path does not function</strong>. Almost everything below
+      follows from those two facts.
+    </p>
+    <div class="meta">
+      <span>13 routes reviewed</span>
+      <span>Desktop 1440 &amp; mobile 390</span>
+      <span>Next.js 15 · Tailwind v4</span>
+      <span>30 July 2026</span>
+    </div>
+  </header>
+
+  <div class="tally">
+    <div><span class="n">3</span><span class="k">Critical</span></div>
+    <div><span class="n">9</span><span class="k">High</span></div>
+    <div><span class="n">14</span><span class="k">Medium</span></div>
+    <div><span class="n">0</span><span class="k">Images in build</span></div>
+    <div><span class="n">363</span><span class="k">Photos available</span></div>
+  </div>
+
+  <!-- ============ CROSS-CUTTING ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Applies to every page</span>
+      <h2>The three that matter most</h2>
+      <p>
+        Fix these and the per-page notes get much shorter. Leave them and no
+        amount of layout work will help.
+      </p>
+    </div>
+
+    <ul class="findings">
+      <li>
+        <span class="sev crit">Critical</span>
+        <div>
+          <b>There is not a single photograph on the site.</b> Twelve
+          <code>ImageSlot</code> placeholders across six pages render a hatched
+          grey box with a photo brief in it; the other seven pages have no image
+          slot at all. Someone choosing between a $1,700 and a $2,500 Kilimanjaro
+          climb is buying an experience they cannot see. This is the difference
+          between a well-built prototype and a website.
+          <span class="fix">The operator already owns the library — I counted 363 distinct photographs on their live site, covering every route, park, island and day trip. Pull them into <code>public/</code>, wire them through <code>next/image</code>, and delete <code>ImageSlot</code>.</span>
+        </div>
+      </li>
+      <li>
+        <span class="sev crit">Critical</span>
+        <div>
+          <b>Nine buttons do nothing, and the contact form silently discards
+          submissions.</b> &ldquo;Pay&nbsp;$X&nbsp;deposit&rdquo;,
+          &ldquo;Add to trip&rdquo;, &ldquo;Join the waitlist&rdquo;,
+          &ldquo;Ask for a price&rdquo; and &ldquo;Email me this quote&rdquo; are
+          all <code>type="button"</code> with no handler. The contact
+          <code>&lt;form&gt;</code> has no <code>action</code> and no submit
+          handler — a visitor fills it in, presses send, the page reloads and the
+          message goes nowhere. That is worse than having no form.
+          <span class="fix">Wire a real endpoint (a server action posting to email or a CRM). Until payments exist, make the deposit button an honest &ldquo;Request this trip&rdquo; rather than implying checkout.</span>
+        </div>
+      </li>
+      <li>
+        <span class="sev crit">Critical</span>
+        <div>
+          <b>Prices are missing on two entire product lines.</b> All six Zanzibar
+          packages and two of five combos read &ldquo;on request&rdquo;. That was
+          the right call — the live site&rsquo;s numbers there are a CMS
+          placeholder — but it leaves the two highest-value pages with nothing to
+          buy.
+          <span class="fix">Get the real rate cards from Moshi. This is a phone call, not a design problem, and it is blocking the two pages with the highest basket value.</span>
+        </div>
+      </li>
+      <li>
+        <span class="sev ok">Fixed</span>
+        <div>
+          <b>The homepage overflowed horizontally on mobile.</b> The altitude
+          chart carries <code>min-w-[640px]</code> so it stays readable; because
+          it sat inside a grid item, which defaults to
+          <code>min-width:auto</code>, that 640px propagated up and pushed the
+          whole page past a 390px viewport. Body copy and the sidebar CTA were
+          clipped off-screen.
+          <span class="fix">Applied — <code>min-w-0</code> on the profile wrapper, so the scroll stays inside the chart. Worth a wider responsive audit; this class of bug rarely appears alone.</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="callout">
+      <h4>What &ldquo;2026 standard&rdquo; actually means here</h4>
+      <p>
+        Beyond the above: real imagery served as AVIF/WebP with blur placeholders
+        and a <code>priority</code> hint on the hero; a sticky price-and-book bar
+        on mobile product pages; per-product structured data
+        (<code>Trip</code>/<code>Offer</code>) rather than only the site-level
+        <code>TravelAgency</code>; visible form validation with useful error text;
+        and a cookie/consent layer if any EU analytics land.
+      </p>
+      <p>
+        Accessibility is in good shape — the palette was contrast-checked when the
+        brand went in, motion respects <code>prefers-reduced-motion</code>, and
+        focus states are defined. The gap is forms, not colour.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ PAGE BY PAGE ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Route by route</span>
+      <h2>Page by page</h2>
+      <p>Ordered as a visitor meets them, not by severity.</p>
+    </div>
+
+    <!-- HOME -->
+    <article class="page">
+      <div class="page-head"><h3>Homepage</h3><span class="route">/</span></div>
+      <p class="verdict">
+        The route picker is the single best thing on this site and no competitor
+        has it. It is also sitting under a hero that is half empty.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>The hero is text on white with an empty right half.</b> At 1440px the
+          right 40% of the opening screen is blank. Every serious operator in this
+          market opens on a full-bleed photograph of the mountain or the herds.
+          <span class="fix">Full-bleed image hero with the headline over a scrim. <code>climb-mount-kilimanjaro.jpg</code> and <code>migration1.jpg</code> are both already on their server.</span>
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>Ten real TripAdvisor reviews are sitting unused.</b> The homepage
+          shows only a count in the top strip. The reviews name guides —
+          Rafael, Patmos, Kihori, Mustapha — which is the most persuasive
+          material the company has.
+          <span class="fix">A testimonial band mid-page, each quote attributed and tied to the guide it names.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No accreditation row.</b> Trust marks belong above the fold on a
+          site asking for a $2,000+ deposit from strangers.
+          <span class="fix">The live site carries APTA, ASTA, ATTA and TATO marks — see the inventory below.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>On mobile the picker sits ~700px down</b>, below a headline that runs
+          four lines in an all-caps display face.
+          <span class="fix">Tighten the mobile hero; consider surfacing the route tabs directly under it.</span>
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- KILI INDEX -->
+    <article class="page">
+      <div class="page-head"><h3>Kilimanjaro routes</h3><span class="route">/kilimanjaro</span></div>
+      <p class="verdict">
+        Six full-width altitude charts stacked vertically. Individually excellent;
+        together they are hard to compare, which is the one job this page has.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>Comparison is the page&rsquo;s purpose but there is no comparison
+          view.</b> A visitor has to scroll six long blocks and hold the numbers
+          in their head.
+          <span class="fix">Lead with a sortable table — days, summit rate, difficulty, traffic, price — then the charts underneath as the detail layer.</span>
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>No route imagery</b>, though <code>Lemosho-Route.jpg</code>,
+          <code>Machame-Route-.jpg</code>, <code>Marangu-Route1.jpg</code> and
+          <code>KILIMANJARO-NORTHERN-ROUTE.jpg</code> all exist.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>Five of six routes carry an &ldquo;own data to confirm&rdquo;
+          badge.</b> Honest, and correct for now — but a row of five warning
+          chips reads as an unfinished site rather than a candid one.
+          <span class="fix">Get the operator&rsquo;s real summit rates, or state the industry source in one line and drop the per-route badges.</span>
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- ROUTE DETAIL -->
+    <article class="page">
+      <div class="page-head"><h3>Route detail</h3><span class="route">/kilimanjaro/[slug]</span></div>
+      <p class="verdict">
+        The strongest page in the build. Chart, day-by-day, honest inclusions,
+        group pricing, live departures. It needs pictures and a way to book from
+        a phone.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>No hero image and no gallery</b> on a page selling a $2,250 trip.
+          <span class="fix">Hero plus a small gallery; ideally one image per day of the itinerary, which no competitor does.</span>
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>On mobile the price and CTA scroll away immediately</b> and never
+          come back across a very long page.
+          <span class="fix">Sticky bottom bar: price, &ldquo;from&rdquo; qualifier, book button.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No route map.</b> Climbers compare approaches spatially; the profile
+          shows altitude but not which side of the mountain you walk in from.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No reviews on the page</b>, and no FAQ despite the operator
+          publishing a long, genuinely useful FAQ set.
+          <span class="fix">Adding an <code>FAQPage</code> block also earns rich results.</span>
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- DEPARTURES -->
+    <article class="page">
+      <div class="page-head"><h3>Group departures</h3><span class="route">/departures</span></div>
+      <p class="verdict">
+        The most finished page here. Dates, prices, seat bars and a waitlist state
+        all read clearly at both widths.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>Seat counts are invented.</b> Flagged in the code already, but worth
+          restating: &ldquo;3 of 12 seats left&rdquo; is the one claim on this
+          site that could not be defended if a customer challenged it.
+          <span class="fix">Real numbers from the office, or drop the bar and show only the date and price.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No filtering</b> by month, route or year across a list that will grow.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>The waitlist button is inert</b>, so the sold-out row is a dead end.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No calendar view.</b> The live site&rsquo;s month grid is genuinely
+          better for &ldquo;what can I do in August&rdquo; scanning.
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- SAFARIS -->
+    <article class="page">
+      <div class="page-head"><h3>Safaris &amp; detail</h3><span class="route">/safaris</span><span class="route">/safaris/[slug]</span></div>
+      <p class="verdict">
+        The parks section is a real content advantage — the live site buries that
+        material three clicks deep. It is also the most image-starved page on a
+        site about watching animals.
+      </p>
+      <ul class="findings">
+        <li><span class="sev crit">Critical</span><div>
+          <b>A safari page with no wildlife photography.</b> Ten park entries,
+          six add-on experiences, three itineraries — all text.
+          <span class="fix">Serengeti, Ngorongoro, Tarangire, Manyara, Arusha and Mkomazi photos all exist on their server, plus lion, leopard, cheetah, elephant and balloon shots.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>Only three safaris.</b> Thin next to the climb offering, and the
+          detail pages have no map, no vehicle photo and no lodge photo despite
+          the sister-camp tie-in being a selling point.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>Every safari carries a &ldquo;rate sheet to confirm&rdquo; badge</b>
+          even though the three prices came straight off the operator&rsquo;s
+          homepage.
+          <span class="fix">Verify those three and drop the badge.</span>
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- ZANZIBAR -->
+    <article class="page">
+      <div class="page-head"><h3>Zanzibar</h3><span class="route">/zanzibar</span></div>
+      <p class="verdict">
+        Six packages, zero prices, zero images — for the most visual destination
+        the company sells. Currently the weakest page relative to its potential.
+      </p>
+      <ul class="findings">
+        <li><span class="sev crit">Critical</span><div>
+          <b>Nothing on this page can be bought.</b> Six &ldquo;on request&rdquo;
+          cards in a column reads as unfinished rather than considered.
+          <span class="fix">Real rates. If they genuinely vary too much to publish, redesign around an enquiry-first layout so the CTA looks intentional.</span>
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>No imagery for beaches, Stone Town, Jozani or the reef</b>, though
+          roughly fourteen Zanzibar photographs are available.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>The seasons section is the best content on the page and is
+          text-only.</b> It says March–May is cheap for a reason, which is
+          unusually honest.
+          <span class="fix">Give it a simple visual — a twelve-month band coloured by season.</span>
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- COMBOS -->
+    <article class="page">
+      <div class="page-head"><h3>Combo trips</h3><span class="route">/combos</span></div>
+      <p class="verdict">
+        Highest basket value on the site and a genuinely strong argument
+        (&ldquo;the mountain has to come first&rdquo;). Presented as text chips.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>The three-leg journey is the product and it is drawn as
+          arrows between pills.</b>
+          <span class="fix">A horizontal timeline with day counts per leg and an image per leg — climb, parks, beach.</span>
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>Two of five combos are unpriced</b>, both Zanzibar-inclusive.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>The 15-day and 14-day sit four dollars apart</b> with no guidance
+          beyond &ldquo;ask us&rdquo;.
+          <span class="fix">Say plainly which suits whom, or merge them.</span>
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- DAY TRIPS -->
+    <article class="page">
+      <div class="page-head"><h3>Day trips</h3><span class="route">/day-trips</span></div>
+      <p class="verdict">
+        The per-vehicle price ladders are the most customer-honest thing on the
+        site and nobody else in this market publishes them. Keep exactly as is.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>Ten trips, no images</b> — waterfalls, hot springs and coffee farms
+          are pure visual sells, and chemka, materuni, coffee-tour and
+          marangu-waterfall photos all exist.
+          <span class="fix">Move from a dense list to an image card grid; keep the ladder inside each card.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>Two trips show &ldquo;on request&rdquo;</b> and are excluded from the
+          planner basket — correct behaviour, but they look broken next to eight
+          priced siblings.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No duration/price sort or filter</b>, and no indication of which
+          pair well with a climb recovery day.
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- PLAN -->
+    <article class="page">
+      <div class="page-head"><h3>Trip planner</h3><span class="route">/plan</span></div>
+      <p class="verdict">
+        Strategically the most valuable page — the live competitor has an enquiry
+        form and nothing else. It currently cannot take a booking.
+      </p>
+      <ul class="findings">
+        <li><span class="sev crit">Critical</span><div>
+          <b>&ldquo;Pay deposit&rdquo; is inert.</b> The whole page builds to a
+          button that does nothing.
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>No validation and no date constraints.</b> The arrival field accepts
+          dates in the past; email is unchecked; nothing warns you before you
+          reach the dead button.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>The basket does not survive a refresh.</b> Trip planning is a
+          multi-session activity.
+          <span class="fix">Persist to <code>localStorage</code>, and make the selection shareable via URL params.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No single-supplement handling and no currency switch</b>, on a page
+          whose audience is explicitly USA, EU, UK and Australia.
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- ABOUT -->
+    <article class="page">
+      <div class="page-head"><h3>About</h3><span class="route">/about</span></div>
+      <p class="verdict">
+        The guides are the emotional core of this business — guests name them,
+        unprompted, in review after review. They are rendered as text rows.
+      </p>
+      <ul class="findings">
+        <li><span class="sev high">High</span><div>
+          <b>Nine guides, no faces.</b> &ldquo;Ask for one of them by name&rdquo;
+          is a strong promise undercut by a table.
+          <span class="fix">Portraits and a line of biography each. If the operator has no portraits, this is worth commissioning before any other photography.</span>
+        </div></li>
+        <li><span class="sev high">High</span><div>
+          <b>Five credentials in a row, every one marked
+          &ldquo;number to confirm&rdquo;.</b> Individually honest; as a block it
+          reads as a company that cannot evidence its memberships.
+          <span class="fix">Get the numbers, or show only the ones you can evidence. The operator also publishes APTA, ASTA and ATTA marks that this build does not list at all.</span>
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>The porter-welfare section is the best copy on the site</b> and has
+          no supporting evidence — no photograph, no KPAP number, no wage figure.
+        </div></li>
+      </ul>
+    </article>
+
+    <!-- CONTACT + 404 -->
+    <article class="page">
+      <div class="page-head"><h3>Contact &amp; not-found</h3><span class="route">/contact</span><span class="route">/404</span></div>
+      <ul class="findings">
+        <li><span class="sev crit">Critical</span><div>
+          <b>The contact form discards everything typed into it.</b> No action, no
+          handler, no success state.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>No map and no WhatsApp button on the contact page</b>, despite
+          WhatsApp being the operator&rsquo;s fastest channel and already in the
+          footer.
+        </div></li>
+        <li><span class="sev med">Medium</span><div>
+          <b>The 404 is bare.</b> A search box or the three most popular routes
+          would recover more visitors.
+        </div></li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ IMAGE INVENTORY ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Already owned, not yet used</span>
+      <h2>The photography that exists</h2>
+      <p>
+        A sample of what is sitting on the operator&rsquo;s own server. Nothing
+        here needs to be bought, shot or licensed — it needs to be downloaded,
+        optimised and placed.
+      </p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Where it goes</th><th>Example files</th><th class="n-col">Found</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Kilimanjaro routes &amp; hero</td><td class="file">Lemosho-Route.jpg · Machame-Route-.jpg · Marangu-Route1.jpg · KILIMANJARO-NORTHERN-ROUTE.jpg · Barranco-Camp-1.jpeg · climb-mount-kilimanjaro.jpg</td><td class="n-col">20+</td></tr>
+          <tr><td>Parks &amp; wildlife</td><td class="file">serengeti1-01-1.jpg · ngorongoro-crater-01.jpg · Tarangire1-01.jpg · Manyara-National-Park1-01.jpg · LION-IN-SERENGETI-3.jpg · leopard.jpg · cheetah.jpg</td><td class="n-col">14+</td></tr>
+          <tr><td>Zanzibar</td><td class="file">zanzibar1.jpg · Arrival-matemwe.jpg · TWA-Mahali-Zanzibar.jpg · Exploration-and-Relaxation-Zanzibar-Jozani-Forest-Tour.jpg · beachfront-Queen-.jpg</td><td class="n-col">14+</td></tr>
+          <tr><td>Day trips</td><td class="file">chemka.jpg · materuni.webp · coffee-tour.jpg · marangu-waterfall.jpg · cultural-experiences-with-the-maasai.png</td><td class="n-col">12+</td></tr>
+          <tr><td>Experiences</td><td class="file">balloon-01.jpg · bird-watching-01-1.jpg · Migration-safari.jpg</td><td class="n-col">6+</td></tr>
+          <tr><td>Accreditation marks</td><td class="file">tatologo.png <em>(in use)</em> · apta.png · asta.png · atta.png</td><td class="n-col">4</td></tr>
+          <tr><td><strong>Total distinct images</strong></td><td class="file">—</td><td class="n-col"><strong>363</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <h4>One caution before bulk-copying</h4>
+      <p>
+        These are the operator&rsquo;s own assets on their own domain, so using
+        them for their own rebuild is straightforward. But some WordPress media
+        libraries contain stock purchased under a licence that does not transfer,
+        and a few filenames here (<code>Screenshot-…</code>,
+        <code>Springlands-Hotel.jpg</code>) suggest mixed provenance.
+        Worth one confirmation from the office that the library is theirs to
+        republish before it all ships.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ PRIORITY ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Sequence</span>
+      <h2>What to do, in order</h2>
+      <p>Grouped so each block is independently shippable.</p>
+    </div>
+    <ol class="prio">
+      <li>
+        <div>
+          <h4>Make it real</h4>
+          <p>Nothing else matters until a visitor can see the trip and buy it.</p>
+          <ul>
+            <li>Import the photo library; replace all twelve <code>ImageSlot</code> placeholders with <code>next/image</code></li>
+            <li>Wire the contact form and the planner to a real endpoint</li>
+            <li>Give every dead button either a function or honest wording</li>
+            <li>Get Zanzibar and combo rate cards from Moshi</li>
+          </ul>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>Make it convert</h4>
+          <p>The structural changes that turn browsing into booking.</p>
+          <ul>
+            <li>Full-bleed image heroes on home, routes, safaris, Zanzibar</li>
+            <li>Sticky mobile price-and-book bar on all product pages</li>
+            <li>Sortable comparison table at the top of <code>/kilimanjaro</code></li>
+            <li>Testimonial band using the ten real reviews; guide portraits on About</li>
+            <li>Full responsive pass at 390 / 768 / 1440</li>
+          </ul>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>Make it findable and finished</h4>
+          <ul>
+            <li>Per-trip <code>Trip</code>/<code>Offer</code> structured data; <code>FAQPage</code> blocks</li>
+            <li>Route maps, safari maps, Zanzibar season graphic, combo timeline</li>
+            <li>Departure filters and calendar view; day-trip card grid</li>
+            <li>Planner persistence, validation and shareable URLs</li>
+            <li>Real accreditation numbers, real seat counts, real summit rates — retire the badges</li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <footer>
+    Reviewed against the running build at localhost:3000 · Screenshots taken at 1440×1500 and 390×1400 ·
+    Counts of dead controls and placeholders taken from source, not estimated
+  </footer>
+
+</div>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("themeToggle");
+    var label = document.getElementById("themeLabel");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    function current() {
+      return root.getAttribute("data-theme") || (prefersDark.matches ? "dark" : "light");
+    }
+    function paint() {
+      var dark = current() === "dark";
+      label.textContent = dark ? "Light" : "Dark";
+      btn.setAttribute("aria-pressed", String(dark));
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("twa-review-theme"); } catch (e) {}
+    if (saved) root.setAttribute("data-theme", saved);
+    paint();
+    btn.addEventListener("click", function () {
+      var next = current() === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("twa-review-theme", next); } catch (e) {}
+      paint();
+    });
+    prefersDark.addEventListener("change", paint);
+  })();
+</script>
+</body>
+</html>
